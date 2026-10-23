@@ -104,7 +104,9 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 .factors i.p1 { background: var(--high); opacity: .55; } .factors i.p2 { background: var(--high); }
 .factors i.n1 { background: var(--low); opacity: .55; } .factors i.n2 { background: var(--low); }
 .leg .why-m { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
-.games:not(.detail) .why-m, .games:not(.detail) .trend, .games:not(.detail) .trend-cap { display: none; }
+.games:not(.detail) .why-m, .games:not(.detail) .trend, .games:not(.detail) .trend-cap, .games:not(.detail) .vs { display: none; }
+.leg .vs { display: block; margin-top: 4px; }
+.leg .vs-cap { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
 .games:not(.detail) .leg { padding: 6px 10px; }
 .gtools { display: flex; justify-content: flex-end; margin: 0 0 8px; }
 .gtools .chip { font-size: 12px; padding: 4px 10px; }
@@ -307,8 +309,7 @@ footer p { margin: 0 0 8px; }
 </footer>
 </div>
 
-<script id="slate-data" type="application/json">
-{
+<script id="slate-data" type="application/json">{
  "date": "Fri 23 Oct 2026 · Sydney",
  "updated": "Last updated Fri 23 Oct, 8:50am AEDT · 9am run · 2 games on the slate · Jarrett Allen says he expects to play (post-shootaround work in Philly); totals have moved to 236.5 at Sportsbet (237.5 / 236.5 US), so the under legs are now at 236.5; OKC shortened to 1.30.",
  "sources": "Sources this run (31): FanDuel Research/numberFire, Sports Mole (both previews), Dimers (model pages, best bets, props), Stats Insider, SportsLine, Bleacher Nation, Doc's Sports, Sports Gambling Podcast, BettingNews (Covers/expert consensus), Oddschecker, Covers injuries, Rotowire, NBC Sports, PhillyVoice, Philadelphia Inquirer, Yahoo Sports (minutes report via Shams/Polymarket, lineup projection), SI, Bleacher Report, Field Level Media, Arab News, Fox Sports team stats, StatMuse game logs and team tables, Basketball Reference (blocked), Reddit r/sportsbook (blocked). 6am refresh: Dimers game pages (model and lineups), Sportsbet, Oddschecker US, CBS Sports injuries. 9am check: NBC Sports (Fedor on Allen), BasketNews (Cunningham), Yahoo Nuggets injury report.",
@@ -736,6 +737,26 @@ footer p { margin: 0 0 8px; }
       "tips": {
        "Dimers": "for"
       }
+     },
+     "vs": {
+      "opp": "76ers",
+      "stat": "ppg",
+      "games": [
+       21,
+       36,
+       12,
+       23,
+       19,
+       37,
+       46,
+       35,
+       13,
+       17
+      ],
+      "avg": 23.8,
+      "n": 22,
+      "def": "Edgecombe or LeBron",
+      "dnote": "Edgecombe takes him at the point of attack, LeBron late"
      }
     },
     {
@@ -772,6 +793,26 @@ footer p { margin: 0 0 8px; }
      "ev": {
       "models": {},
       "tips": {}
+     },
+     "vs": {
+      "opp": "Cavaliers",
+      "stat": "ppg",
+      "games": [
+       40,
+       22,
+       35,
+       44,
+       19,
+       29,
+       36,
+       32,
+       20,
+       33
+      ],
+      "avg": 26.3,
+      "n": 21,
+      "def": "Mobley",
+      "dnote": "guards him one-on-one; Allen is the backup if his knee holds"
      }
     },
     {
@@ -798,6 +839,27 @@ footer p { margin: 0 0 8px; }
        "Dimers": "for",
        "Sports Mole": "for"
       }
+     },
+     "vs": {
+      "opp": "76ers",
+      "stat": "rpg",
+      "line": 9.5,
+      "games": [
+       12,
+       10,
+       10,
+       11,
+       7,
+       13,
+       5,
+       13,
+       5,
+       8
+      ],
+      "avg": 9.0,
+      "n": 16,
+      "def": "Embiid",
+      "dnote": "boxes him out on a minutes cap, Philly has no other size"
      }
     },
     {
@@ -836,6 +898,26 @@ footer p { margin: 0 0 8px; }
       "tips": {
        "Sports Mole": "for"
       }
+     },
+     "vs": {
+      "opp": "Cavaliers",
+      "stat": "ppg",
+      "games": [
+       23,
+       30,
+       22,
+       24,
+       16,
+       27,
+       29,
+       27,
+       14,
+       22
+      ],
+      "avg": 19.3,
+      "n": 18,
+      "def": "Watson or Mitchell",
+      "dnote": "neither is a stopper; Mobley waits at the rim"
      }
     }
    ]
@@ -1271,6 +1353,26 @@ footer p { margin: 0 0 8px; }
        "Dimers": "for",
        "Sports Mole": "for"
       }
+     },
+     "vs": {
+      "opp": "Nuggets",
+      "stat": "ppg",
+      "games": [
+       33,
+       34,
+       18,
+       25,
+       31,
+       32,
+       35,
+       34,
+       36,
+       35
+      ],
+      "avg": 23.4,
+      "n": 27,
+      "def": "Murray or C. Johnson",
+      "dnote": "Denver has no point-of-attack stopper in the projected five"
      }
     },
     {
@@ -1309,6 +1411,26 @@ footer p { margin: 0 0 8px; }
       "tips": {
        "Dimers": "for"
       }
+     },
+     "vs": {
+      "opp": "Thunder",
+      "stat": "apg",
+      "games": [
+       6,
+       6,
+       6,
+       3,
+       5,
+       8,
+       7,
+       8,
+       14,
+       13
+      ],
+      "avg": 7.6,
+      "n": 38,
+      "def": "Holmgren or Hartenstein",
+      "dnote": "OKC doubles him in the post, which is where the assists come from"
      }
     },
     {
@@ -1347,6 +1469,26 @@ footer p { margin: 0 0 8px; }
       "tips": {
        "Sports Mole": "for"
       }
+     },
+     "vs": {
+      "opp": "Thunder",
+      "stat": "ppg",
+      "games": [
+       12,
+       5,
+       22,
+       10,
+       22,
+       15,
+       13,
+       5,
+       8,
+       23
+      ],
+      "avg": 14.8,
+      "n": 28,
+      "def": "J. Williams or Holmgren",
+      "dnote": "Holmgren at the rim takes away his cuts"
      }
     }
    ]
@@ -1482,8 +1624,7 @@ footer p { margin: 0 0 8px; }
    "type": "injury"
   }
  ]
-}
-</script>
+}</script>
 
 <script>
 (function () {
@@ -1793,7 +1934,7 @@ footer p { margin: 0 0 8px; }
   }
   function matchup(g) {
     if (g.teams && g.teams.length === 2) {
-      return esc(g.teams[0]) + ' at <span class="home">' + esc(g.teams[1]) + '</span><span class="hometag">Home</span>';
+      return esc(g.teams[0]) + ' at <span class="home">' + esc(g.teams[1]) + '</span>';
     }
     return esc(g.title);
   }
@@ -1847,7 +1988,7 @@ footer p { margin: 0 0 8px; }
     DATA.games.forEach(function (g) {
       var li = document.createElement('li');
       li.innerHTML = '<div class="when">' + esc(g.date || '') + '<b>' + esc(g.time || '') + '</b></div>' +
-        '<div><div class="match">' + logoHTML(sideAbbr(g, 0), true) + '<span>' + matchup(g) + '</span>' + logoHTML(sideAbbr(g, 1), true) + '</div><p class="brief">' + esc(g.brief || '') + '</p></div>';
+        '<div><div class="match">' + logoHTML(sideAbbr(g, 0), true) + '<span>' + matchup(g) + '</span>' + logoHTML(sideAbbr(g, 1), true) + '<span class="hometag">Home</span></div><p class="brief">' + esc(g.brief || '') + '</p></div>';
       ul.appendChild(li);
     });
     fixLogos(ul);
@@ -1928,7 +2069,7 @@ footer p { margin: 0 0 8px; }
         var b = document.createElement('button'); b.type = 'button'; b.className = 'leg';
         b.setAttribute('aria-pressed', ids.indexOf(l.id) >= 0 ? 'true' : 'false');
         b.innerHTML = '<span class="box" aria-hidden="true"></span><span>' + esc(l.text) + factorsHTML(l) + sigHTML(l) + '<small>' + esc(l.note) + ' · consensus ' + esc(l.cons) + '</small>' +
-          (l.matchup ? '<span class="why-m">' + esc(l.matchup) + '</span>' : '') + trendHTML(l) + '</span>' +
+          (l.matchup ? '<span class="why-m">' + esc(l.matchup) + '</span>' : '') + trendHTML(l) + vsHTML(l) + '</span>' +
           '<span class="o">' + l.odds.toFixed(2) + '<br>' + heatHTML(l) + bookHTML(l) + '</span><span class="conf pill ' + confClass(l.conf) + '">' + l.conf + '</span>';
         b.addEventListener('click', function () {
           var cur = currentLegs().map(function (x) { return x.id; }), at = cur.indexOf(l.id);
@@ -1973,13 +2114,30 @@ footer p { margin: 0 0 8px; }
     });
     return out + '</span>';
   }
+  function barsHTML(vals, line, label) {
+    if (!vals || !vals.length || typeof line !== 'number') return '';
+    var max = Math.max.apply(null, vals.concat([line])) * 1.1 || 1, overs = 0;
+    var bars = vals.map(function (v) { var over = v > line; if (over) overs++; return '<b class="' + (over ? 'over' : '') + '" style="height:' + Math.max(2, Math.round(v / max * 28)) + 'px" title="' + v + '"></b>'; }).join('');
+    var lineTop = 28 - Math.round(line / max * 28);
+    return { html: '<span class="trend" aria-label="' + esc(label) + '"><span class="ln" style="top:' + lineTop + 'px"></span>' + bars + '</span>', overs: overs };
+  }
   function trendHTML(l) {
-    if (!l.recent || !l.recent.length || typeof l.line !== 'number') return '';
-    var max = Math.max.apply(null, l.recent.concat([l.line])) * 1.1 || 1, overs = 0;
-    var bars = l.recent.map(function (v) { var over = v > l.line; if (over) overs++; return '<b class="' + (over ? 'over' : '') + '" style="height:' + Math.max(2, Math.round(v / max * 28)) + 'px" title="' + v + '"></b>'; }).join('');
-    var lineTop = 28 - Math.round(l.line / max * 28);
-    return '<span class="trend" aria-label="Last ' + l.recent.length + ' games against the line"><span class="ln" style="top:' + lineTop + 'px"></span>' + bars + '</span>' +
-      '<span class="trend-cap">over the line in ' + overs + ' of last ' + l.recent.length + '</span>';
+    var b = barsHTML(l.recent, l.line, 'Last ' + (l.recent || []).length + ' games against the line'); if (!b) return '';
+    return b.html + '<span class="trend-cap">over the line in ' + b.overs + ' of last ' + l.recent.length + ' games</span>';
+  }
+  function vsHTML(l) {
+    var v = l.vs; if (!v) return '';
+    var line = typeof v.line === 'number' ? v.line : l.line, under = /\bunder\b/i.test(l.text), out = '<span class="vs">';
+    var b = barsHTML(v.games, line, 'Past meetings with the ' + (v.opp || 'opponent') + ' against the line');
+    if (b) {
+      var n = v.games.length, hit = under ? n - b.overs : b.overs;
+      out += b.html + '<span class="trend-cap">' + (under ? 'under' : 'over') + ' the line in ' + hit + ' of last ' + n + ' vs ' + esc(v.opp || 'them') + '</span>';
+    }
+    var bits = [];
+    if (typeof v.avg === 'number' && v.n) bits.push('career ' + v.avg + ' ' + esc(v.stat || '') + ' in ' + v.n + ' games vs ' + esc(v.opp || 'them'));
+    if (v.def) bits.push('likely defender ' + esc(v.def) + (v.dnote ? ' (' + esc(v.dnote) + ')' : ''));
+    if (bits.length) out += '<span class="vs-cap">' + bits.join(' · ') + '</span>';
+    return out + '</span>';
   }
   function compareTable(g) {
     var s = g.stats; if (!s || !s.rows || !s.rows.length) return null;
