@@ -472,8 +472,8 @@ footer p { margin: 0 0 8px; }
 </div>
 
 <script id="slate-data" type="application/json">{
- "date": "Fri 23 Oct 2026 · Sydney",
- "updated": "Last updated Fri 23 Oct, 3:55pm AEDT · results graded: 76ers 114-106 Cavaliers, Thunder 96-84 Nuggets; Safe slip won, Balanced and Aggressive lost · next slate arrives with the 6pm run · 9am run notes: Jarrett Allen says he expects to play (post-shootaround work in Philly); totals have moved to 236.5 at Sportsbet (237.5 / 236.5 US), so the under legs are now at 236.5; OKC shortened to 1.30.",
+ "date": "Fri 23 Oct 2026 \u00b7 Sydney",
+ "updated": "Last updated Fri 23 Oct, 3:55pm AEDT \u00b7 results graded: 76ers 114-106 Cavaliers, Thunder 96-84 Nuggets; Safe slip won, Balanced and Aggressive lost \u00b7 next slate arrives with the 6pm run \u00b7 9am run notes: Jarrett Allen says he expects to play (post-shootaround work in Philly); totals have moved to 236.5 at Sportsbet (237.5 / 236.5 US), so the under legs are now at 236.5; OKC shortened to 1.30.",
  "sources": "Sources this run (32): FanDuel Research/numberFire, Sports Mole (both previews), Dimers (model pages, best bets, props), Stats Insider, SportsLine, Bleacher Nation, Doc's Sports, Sports Gambling Podcast, BettingNews (Covers/expert consensus), Oddschecker, Covers injuries, Rotowire, NBC Sports, PhillyVoice, Philadelphia Inquirer, Yahoo Sports (minutes report via Shams/Polymarket, lineup projection), SI, Bleacher Report, Field Level Media, Arab News, Fox Sports team stats, StatMuse game logs and team tables, Basketball Reference (blocked), Reddit r/sportsbook (blocked). 6am refresh: Dimers game pages (model and lineups), Sportsbet, Oddschecker US, CBS Sports injuries. 9am check: NBC Sports (Fedor on Allen), BasketNews (Cunningham), Yahoo Nuggets injury report.",
  "games": [
   {
@@ -1207,6 +1207,61 @@ footer p { margin: 0 0 8px; }
       "rank": 118
      }
     }
+   ],
+   "final": [
+    106,
+    114
+   ],
+   "box": [
+    {
+     "name": "Joel Embiid",
+     "pts": 24,
+     "reb": 7,
+     "ast": 1,
+     "min": 34
+    },
+    {
+     "name": "Tyrese Maxey",
+     "pts": 32,
+     "reb": 3,
+     "ast": 6,
+     "min": 42
+    },
+    {
+     "name": "LeBron James",
+     "pts": 17,
+     "reb": 10,
+     "ast": 5,
+     "min": 33
+    },
+    {
+     "name": "Donovan Mitchell",
+     "pts": 32,
+     "reb": 10,
+     "ast": 3,
+     "min": 35
+    },
+    {
+     "name": "Evan Mobley",
+     "pts": 18,
+     "reb": 8,
+     "ast": 2,
+     "min": 34
+    },
+    {
+     "name": "Jarrett Allen",
+     "pts": 14,
+     "reb": 7,
+     "ast": 0,
+     "min": 28
+    },
+    {
+     "name": "James Harden",
+     "pts": 16,
+     "reb": 3,
+     "ast": 5,
+     "min": 33
+    }
    ]
   },
   {
@@ -1861,6 +1916,33 @@ footer p { margin: 0 0 8px; }
       "unit": "pts",
       "rank": 15
      }
+    }
+   ],
+   "final": [
+    84,
+    96
+   ],
+   "box": [
+    {
+     "name": "Shai Gilgeous-Alexander",
+     "pts": 17,
+     "reb": 2,
+     "ast": 3,
+     "min": 35
+    },
+    {
+     "name": "Nikola Jokic",
+     "pts": 13,
+     "reb": 7,
+     "ast": 5,
+     "min": 35
+    },
+    {
+     "name": "Aaron Gordon",
+     "pts": 20,
+     "reb": 6,
+     "ast": 1,
+     "min": 29
     }
    ]
   }
@@ -2816,12 +2898,8 @@ footer p { margin: 0 0 8px; }
   function pollLive() {
     if (!DATA.games.length) return;
     var espnBase = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/';
-    getJSON(espnBase + 'scoreboard?dates=' + usDate(0)).then(function (sb) {
-      var scores = (sb.events || []).map(espnScore), found = matchGames(scores);
-      if (Object.keys(found).length < DATA.games.length) {
-        return getJSON(espnBase + 'scoreboard?dates=' + usDate(1)).then(function (sb2) { var more = matchGames((sb2.events || []).map(espnScore)); Object.keys(more).forEach(function (k) { found[k] = more[k]; }); return found; }).catch(function () { return found; });
-      }
-      return found;
+    getJSON(espnBase + 'scoreboard?dates=' + usDate(-1) + '-' + usDate(1)).then(function (sb) {
+      return matchGames((sb.events || []).map(espnScore));
     }).then(function (found) {
       LIVE.games = found; LIVE.source = 'ESPN'; LIVE.error = '';
       var need = Object.keys(found).filter(function (gid) { return found[gid].state !== 'pre' && DATA.games.some(function (g) { return g.id === gid && g.legs.some(function (l) { return l.group === 'prop'; }); }); });
@@ -2834,7 +2912,16 @@ footer p { margin: 0 0 8px; }
         var need = Object.keys(found).filter(function (gid) { return found[gid].state !== 'pre'; });
         return Promise.all(need.map(function (gid) { return getJSON('https://cdn.nba.com/static/json/liveData/boxscore/boxscore_' + found[gid].id + '.json').then(function (bx) { LIVE.players[gid] = nbaPlayers(bx); }).catch(function () {}); }));
       }).catch(function (e2) { LIVE.error = String((e && e.message) || e2 && e2.message || 'blocked'); });
-    }).then(function () { LIVE.fetchedAt = Date.now(); applyLive(); });
+    }).then(function () { LIVE.fetchedAt = Date.now(); staticFinals(); applyLive(); });
+  }
+  // A run that fires after a game has finished writes final [away, home] and box [...] into the slate, so the result shows even without a feed.
+  function staticFinals() {
+    DATA.games.forEach(function (g) {
+      if (LIVE.games[g.id] || !g.final) return;
+      LIVE.games[g.id] = { id: '', awayAbbr: sideAbbr(g, 0), homeAbbr: sideAbbr(g, 1), away: +g.final[0], home: +g.final[1], state: 'post', period: 4, elapsed: 2880, length: 2880, clockText: 'Final' };
+      if (g.box && !LIVE.players[g.id]) LIVE.players[g.id] = g.box.map(function (p) { return { name: p.name, pts: +p.pts || 0, reb: +p.reb || 0, ast: +p.ast || 0, tpm: +p.tpm || 0, stl: 0, blk: 0, min: +p.min || 0, dnp: !!p.dnp, proj: 34 }; });
+      if (!LIVE.source) LIVE.source = 'the graded result';
+    });
   }
 
   renderSchedule();
