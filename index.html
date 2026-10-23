@@ -53,6 +53,7 @@ h3 { font-size: 17px; font-weight: 600; margin: 0 0 4px; text-wrap: balance; }
 .sched .brief { font-size: 14px; color: var(--muted); margin: 2px 0 0; }
 .home { background: var(--accent-soft); color: var(--fg); padding: 0 6px; border-radius: 4px; border-bottom: 2px solid var(--accent); }
 .hometag { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-weight: 700; margin-left: 6px; vertical-align: middle; }
+.mh .s-home .hometag { margin-left: 0; margin-right: 6px; }
 @media (max-width: 480px) { .sched li { grid-template-columns: 1fr; } }
 /* slip */
 .tablewrap { overflow-x: auto; }
@@ -156,20 +157,18 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 td.edge { font-family: var(--mono); white-space: nowrap; } td.edge.pos { color: var(--high); } td.edge.neg { color: var(--low); }
 .corr { padding: 8px 16px; margin: 0; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); }
 .corr b { color: var(--fg); }
-/* sources panel */
-.srcpanel { padding: 6px 16px 12px; }
-.srcgrp { display: grid; grid-template-columns: 11em 1fr; gap: 6px 12px; align-items: start; padding: 8px 0; border-top: 1px solid var(--line); }
-.srcgrp:first-child { border-top: 0; }
-.srcgrp .head { display: grid; gap: 2px; }
-.srcgrp .head .chip { justify-self: start; }
-.srcgrp .head small { color: var(--muted); font-size: 11px; }
-.srcgrp .list { display: flex; flex-wrap: wrap; gap: 6px; }
-.srcgrp .list .chip { font-size: 12px; padding: 3px 9px; }
-.srcgrp .list .chip[aria-pressed="false"] { opacity: .55; text-decoration: line-through; }
-.srcgrp.off .list .chip { opacity: .35; }
-.srctools { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0 4px; font-size: 13px; color: var(--muted); }
+/* sources row */
+.srcrow .chip { font-size: 12px; padding: 4px 10px; }
+.srcrow .chip[aria-pressed="false"] { text-decoration: line-through; opacity: .7; }
+.more { font: inherit; font-size: 12px; color: var(--muted); background: none; border: 0; padding: 4px 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.srcdetail { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 4px 0 2px; align-items: center; }
+.srcdetail .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-left: 4px; }
+.srcdetail .k:first-child { margin-left: 0; }
+.srcdetail .chip { font-size: 11px; padding: 2px 8px; }
+.srcdetail .chip[aria-pressed="false"] { opacity: .55; text-decoration: line-through; }
+.srcdetail .chip.dim { opacity: .35; }
 .basis { padding: 8px 16px; margin: 0; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
-@media (max-width: 480px) { .srcgrp { grid-template-columns: 1fr; } }
 /* live tracker */
 .live { display: grid; gap: 0; }
 .live .lg { padding: 10px 16px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
@@ -256,10 +255,9 @@ footer p { margin: 0 0 8px; }
   <div class="row"><span class="label">Legs</span><span id="leg-chips" class="row"></span></div>
   <div class="row"><span class="label">Risk</span><span id="risk-chips" class="row"></span><span class="riskhelp" id="risk-help"></span></div>
   <div class="row"><span class="label">Stake</span><label>$ <input class="stake" id="stake" type="number" min="1" step="1" value="10" inputmode="numeric"></label></div>
+  <div class="row srcrow"><span class="label" title="Switch a source type off and the probabilities, consensus and heat rebuild without it">Sources</span><span id="src-chips" class="row"></span><button type="button" class="more" id="src-more" aria-expanded="false">Fine-tune</button></div>
+  <div class="srcdetail" id="src-detail" hidden></div>
 </div>
-
-<div class="eyebrow">Sources behind the prediction</div>
-<div class="panel srcpanel" id="srcpanel"></div>
 
 <div class="eyebrow">Your slip</div>
 <div class="panel">
@@ -1514,8 +1512,8 @@ footer p { margin: 0 0 8px; }
   DATA.games.forEach(function (g) { g.legs.forEach(function (l) { l.game = g.id; legIndex[l.id] = l; }); });
 
   // ---------- Sources: every leg's probability is rebuilt from the sources that are switched on ----------
-  var TYPE_NAMES = { model: 'Models', tipster: 'Tipsters', market: 'Bookmakers and public money', news: 'News', social: 'Social media', stats: 'Stats databases', injury: 'Injury reports' };
-  var TYPE_HELP = { model: 'Win probabilities and projections. 35% of the blend.', tipster: 'Published picks. Drive the consensus count and a small nudge.', market: 'Prices and line moves. 50% of the blend.', news: 'Coach quotes, minutes caps, lineup news. Feed our own read.', social: 'Insider posts and Reddit, verified against news. Feed our own read.', stats: 'Ratings, pace, game logs. Feed our own read and the form/matchup factors.', injury: 'Official and aggregated injury lists. Feed the injury factor.' };
+  var TYPE_NAMES = { model: 'Models', tipster: 'Tipsters', market: 'Books', news: 'News', social: 'Social', stats: 'Stats', injury: 'Injuries' };
+  var TYPE_HELP = { model: 'Model win probabilities, 35% of the blend', tipster: 'Published picks: consensus count and a small nudge', market: 'Bookmaker prices and public money, 50% of the blend', news: 'News and coach quotes, part of our 15% read', social: 'Insider posts and Reddit, part of our 15% read', stats: 'Ratings and game logs, part of our 15% read and the form/matchup factors', injury: 'Injury reports, the injury factor' };
   var TYPE_ORDER = ['market', 'model', 'tipster', 'injury', 'news', 'social', 'stats'];
   var SOURCES = DATA.sourceList || [], SRC_TYPE = {};
   SOURCES.forEach(function (x) { SRC_TYPE[x.name] = x.type; });
@@ -1579,26 +1577,31 @@ footer p { margin: 0 0 8px; }
         l.factors = f;
       }
     }); });
-    var on = SOURCES.filter(function (x) { return srcOn(x.name); }).length, parts = [];
-    if (typeOn('market')) parts.push('market ' + Math.round(W.market * 100) + '%'); if (typeOn('model')) parts.push('models ' + Math.round(W.model * 100) + '%');
-    if (typeOn('news') || typeOn('stats') || typeOn('social')) parts.push('our read ' + Math.round(W.own * 100) + '%'); if (typeOn('tipster')) parts.push('tipster nudge up to ±' + Math.round(NUDGE * 50) + ' pts');
-    var b = $('basis'); if (b) b.textContent = 'Prediction basis: ' + (parts.length ? parts.join(' · ') + ' (weights rescale when a part is off)' : 'nothing selected, probabilities default to 50%') + ' · ' + on + ' of ' + SOURCES.length + ' sources on' + (anyOff ? ' · probabilities, consensus and heat are recomputed from what is on' : '') + '.';
+    var on = SOURCES.filter(function (x) { return srcOn(x.name); }).length, offT = TYPE_ORDER.filter(function (t) { return !typeOn(t); }).map(function (t) { return TYPE_NAMES[t]; });
+    var b = $('basis'); if (b) { b.hidden = !anyOff; b.textContent = anyOff ? 'Rebuilt from ' + on + ' of ' + SOURCES.length + ' sources' + (offT.length ? ' (' + offT.join(', ') + ' off)' : '') + ': probabilities, consensus and heat reflect only what is on, each leg moved by at most 8 points.' : ''; }
   }
+  var srcDetail = false;
   function renderSources() {
-    var el = $('srcpanel'); if (!el) return; el.innerHTML = '';
-    var tools = document.createElement('div'); tools.className = 'srctools';
-    var on = SOURCES.filter(function (x) { return srcOn(x.name); }).length;
-    tools.innerHTML = '<span>Switch a whole type or a single source off and the prediction rebuilds without it. ' + on + ' of ' + SOURCES.length + ' on.</span>';
-    var reset = chip('All on', false, function () { state.srcOff = {}; state.typeOff = {}; state.manual = null; savePrefs(); render(); }); tools.appendChild(reset); el.appendChild(tools);
+    var el = $('src-chips'); if (!el) return; el.innerHTML = '';
+    TYPE_ORDER.forEach(function (t) {
+      if (!SOURCES.some(function (x) { return x.type === t; })) return;
+      var c = chip(TYPE_NAMES[t] || t, typeOn(t), function () { state.typeOff[t] = !state.typeOff[t]; state.manual = null; savePrefs(); render(); });
+      c.title = TYPE_HELP[t] || ''; el.appendChild(c);
+    });
+    var anyOff = Object.keys(state.srcOff).some(function (k) { return state.srcOff[k]; }) || Object.keys(state.typeOff).some(function (k) { return state.typeOff[k]; });
+    if (anyOff) el.appendChild(chip('All on', false, function () { state.srcOff = {}; state.typeOff = {}; state.manual = null; savePrefs(); render(); }));
+    var more = $('src-more'), det = $('src-detail'); if (!more || !det) return;
+    more.textContent = srcDetail ? 'Hide sources' : 'Fine-tune'; more.setAttribute('aria-expanded', srcDetail ? 'true' : 'false');
+    more.onclick = function () { srcDetail = !srcDetail; renderSources(); };
+    det.hidden = !srcDetail; det.innerHTML = '';
+    if (!srcDetail) return;
     TYPE_ORDER.forEach(function (t) {
       var list = SOURCES.filter(function (x) { return x.type === t; }); if (!list.length) return;
-      var grp = document.createElement('div'); grp.className = 'srcgrp' + (typeOn(t) ? '' : ' off');
-      var head = document.createElement('div'); head.className = 'head';
-      head.appendChild(chip(TYPE_NAMES[t] || t, typeOn(t), function () { state.typeOff[t] = !state.typeOff[t]; state.manual = null; savePrefs(); render(); }));
-      var sm = document.createElement('small'); sm.textContent = TYPE_HELP[t] || ''; head.appendChild(sm); grp.appendChild(head);
-      var ul = document.createElement('div'); ul.className = 'list';
-      list.forEach(function (x) { ul.appendChild(chip(x.name, !state.srcOff[x.name], function () { state.srcOff[x.name] = !state.srcOff[x.name]; state.manual = null; savePrefs(); render(); })); });
-      grp.appendChild(ul); el.appendChild(grp);
+      var k = document.createElement('span'); k.className = 'k'; k.textContent = TYPE_NAMES[t] || t; det.appendChild(k);
+      list.forEach(function (x) {
+        var c = chip(x.name, !state.srcOff[x.name], function () { state.srcOff[x.name] = !state.srcOff[x.name]; state.manual = null; savePrefs(); render(); });
+        if (!typeOn(t)) c.classList.add('dim'); det.appendChild(c);
+      });
     });
   }
 
@@ -1783,7 +1786,7 @@ footer p { margin: 0 0 8px; }
     var h = '<div class="mh">' +
       '<div class="side s-away">' + logoHTML(aw) + '<div><div class="tn">' + esc(g.teams[0]) + '</div><div class="rec">' + esc(rec[0] || '') + '</div></div></div>' +
       '<div class="mid"><div class="d">' + esc(g.date || '') + '</div><div class="t">' + timeHTML(g.time) + '</div><div class="ln">' + esc(g.line || '') + (g.total ? ' · O/U ' + esc(g.total) : '') + '</div></div>' +
-      '<div class="side s-home">' + logoHTML(hm) + '<div><div class="tn"><span class="home">' + esc(g.teams[1]) + '</span><span class="hometag">Home</span></div><div class="rec">' + esc(rec[1] || '') + '</div></div></div></div>';
+      '<div class="side s-home">' + logoHTML(hm) + '<div><div class="tn"><span class="hometag">Home</span><span class="home">' + esc(g.teams[1]) + '</span></div><div class="rec">' + esc(rec[1] || '') + '</div></div></div></div>';
     if (ml.length === 2) h += '<div class="oddsbar"><span class="a' + (fav === 0 ? ' fav' : '') + '">$' + Number(ml[0]).toFixed(2) + '</span><span class="c">Head to head</span><span class="h' + (fav === 1 ? ' fav' : '') + '">$' + Number(ml[1]).toFixed(2) + '</span></div>';
     h += intelHTML(g);
     return h;
