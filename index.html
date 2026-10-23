@@ -86,6 +86,18 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 .signals { margin: 8px 0 0; padding: 8px 12px; border-left: 3px solid var(--line); font-size: 14px; color: var(--muted); }
 .tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 12px; }
 .tally .card { padding: 12px 14px; }
+.curve { padding: 12px 16px 10px; margin-bottom: 12px; }
+.curve .hd { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.curve .k { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.curve .lg { display: flex; gap: 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.curve .lg i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+.curve .lg b { color: var(--fg); font-family: var(--mono); font-weight: 500; }
+.curve svg { display: block; width: 100%; height: 150px; margin-top: 6px; overflow: visible; }
+.curve .ax { stroke: var(--line); stroke-width: 1; } .curve .zero { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.curve .ln { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.curve .pt { stroke: var(--surface); stroke-width: 1.5; }
+.curve text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.curve .s { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
 .tally .k { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
 .tally .v { font-family: var(--display); font-size: 28px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .tally .s { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -325,6 +337,7 @@ footer p { margin: 0 0 8px; }
 <div class="eyebrow" id="s-results">Previous days</div>
 <p class="note" style="margin:0 0 10px">Each day we record the default 4-leg slip at every risk level (all teams selected) and grade it once the games finish. The tally assumes a flat $10 on each. Graded legs show ✓ or ✗ so you can see which calls land, and the Hot-leg card tracks how often legs rated 70+ actually hit.</p>
 <div class="tally" id="tally"></div>
+<div class="panel curve" id="curve" hidden></div>
 <div class="panel"><div class="tablewrap"><table class="hist"><thead><tr><th>Date</th><th>Safe</th><th>Balanced</th><th>Aggressive</th></tr></thead><tbody id="history"></tbody></table></div><div class="archive-empty" id="history-empty" hidden>No graded days yet.</div></div>
 
 <script id="history-data" type="application/json">
@@ -2318,6 +2331,42 @@ footer p { margin: 0 0 8px; }
       tr.innerHTML = cells; tb.appendChild(tr);
     });
     $('history-empty').hidden = hist.length > 0;
+    renderCurve(hist, levels);
+  }
+  // Running profit at $10 a day, one line per risk level, graded days only.
+  function renderCurve(hist, levels) {
+    var el = $('curve'); if (!el) return;
+    var days = hist.filter(function (d) { return levels.some(function (k) { var sl = d.slips && d.slips[k]; return sl && /^(won|lost|void)$/i.test(sl.result || ''); }); });
+    if (!days.length) { el.hidden = true; return; }
+    var COL = { safe: 'var(--high)', balanced: 'var(--accent)', aggressive: 'var(--away)' };
+    var series = {}, lo = 0, hi = 0;
+    levels.forEach(function (k) {
+      var run = 0; series[k] = days.map(function (d) {
+        var sl = d.slips && d.slips[k], r = sl ? String(sl.result || '').toLowerCase() : '';
+        if (r === 'won') run += (Number(sl.odds) - 1) * 10; else if (r === 'lost') run -= 10;
+        lo = Math.min(lo, run); hi = Math.max(hi, run); return run;
+      });
+    });
+    el.hidden = false; var W = Math.max(280, el.clientWidth - 32), H = 150, padL = 36, padR = 12, padT = 8, padB = 20, iw = W - padL - padR, ih = H - padT - padB;
+    if (hi - lo < 20) { hi = Math.max(hi, 10); lo = Math.min(lo, -10); }
+    var n = days.length, x = function (i) { return padL + (n === 1 ? iw / 2 : i / (n - 1) * iw); }, y = function (v) { return padT + (hi - v) / (hi - lo) * ih; };
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Running profit by risk level">';
+    svg += '<line class="ax" x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (padT + ih) + '"/>';
+    svg += '<line class="zero" x1="' + padL + '" y1="' + y(0) + '" x2="' + (W - padR) + '" y2="' + y(0) + '"/>';
+    [hi, 0, lo].forEach(function (v) { if (v === 0 && (hi === 0 || lo === 0)) return; svg += '<text x="' + (padL - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v > 0 ? '+' : '') + Math.round(v) + '</text>'; });
+    var step = Math.max(1, Math.ceil(n / 6));
+    days.forEach(function (d, i) { if (i % step && i !== n - 1) return; svg += '<text x="' + x(i) + '" y="' + (H - 4) + '" text-anchor="' + (i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle') + '">' + esc(String(d.date).replace(/^\w+ /, '').replace(/ \d{4}$/, '')) + '</text>'; });
+    levels.forEach(function (k) {
+      var pts = series[k].map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); });
+      svg += '<polyline class="ln" style="stroke:' + COL[k] + '" points="' + pts.join(' ') + '"/>';
+      var last = series[k][n - 1];
+      svg += '<circle class="pt" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(last).toFixed(1) + '" r="4" style="fill:' + COL[k] + '"/>';
+    });
+    svg += '</svg>';
+    var lg = levels.map(function (k) { var v = Math.round(series[k][n - 1]); return '<span><i style="background:' + COL[k] + '"></i>' + RISK[k].label + ' <b>' + (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(v) + '</b></span>'; }).join('');
+    el.innerHTML = '<div class="hd"><span class="k">Running profit, $10 on each slip every day</span><span class="lg">' + lg + '</span></div>' + svg +
+      '<p class="s">' + (n === 1 ? 'One graded day so far; the lines grow as days are graded, 30 days kept.' : n + ' graded days, 30 kept.') + '</p>';
+    el.hidden = false;
   }
 
   function renderSchedule() {
