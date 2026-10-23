@@ -70,6 +70,7 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 .empty { padding: 16px; color: var(--muted); }
 /* candidates */
 .games { display: grid; gap: 12px; }
+.games[hidden], #board[hidden] { display: none; }
 .game { padding: 16px; min-width: 0; }
 .game .meta { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .legs { display: grid; gap: 6px; margin: 10px 0; }
@@ -128,6 +129,8 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 .mh .mid .ln { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .logo { width: 52px; height: 52px; object-fit: contain; flex: none; }
 .logo.sm { width: 28px; height: 28px; }
+.logo.xs, .badge.xs { width: 20px; height: 20px; font-size: 8px; vertical-align: -5px; margin-right: 2px; }
+.slip-logos { display: inline-block; margin-right: 6px; white-space: nowrap; }
 .badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; font-family: var(--display); font-weight: 700; font-size: 16px; flex: none; width: 52px; height: 52px; }
 .badge.sm { width: 28px; height: 28px; font-size: 11px; }
 .oddsbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; background: var(--accent); color: var(--accent-ink); padding: 8px 16px; font-family: var(--mono); font-size: 15px; font-weight: 600; }
@@ -181,17 +184,22 @@ td.edge { font-family: var(--mono); white-space: nowrap; } td.edge.pos { color: 
 .help p, .help > :not(summary) { padding: 0 16px 12px; margin: 0; }
 .viewrow { margin: 0 0 8px; }
 .viewrow .chip { font-size: 12px; padding: 4px 10px; }
-table.board { font-size: 13px; }
+table.board { font-size: 12.5px; }
+table.board th, table.board td { padding: 8px 8px; }
+table.board th:first-child, table.board td.prop { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.board tr.brow:hover td { background: var(--bg); }
+table.board td.heat-c { font-family: var(--mono); }
+@media (max-width: 900px) { table.board .c-med, table.board .c-l20 { display: none; } }
 table.board th { cursor: pointer; white-space: nowrap; user-select: none; }
 table.board th[aria-sort="descending"]::after { content: " ▾"; } table.board th[aria-sort="ascending"]::after { content: " ▴"; }
 table.board td { white-space: nowrap; }
 table.board tr.brow { cursor: pointer; }
 table.board tr.brow[aria-pressed="true"] td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
-table.board td.prop { white-space: normal; min-width: 11em; }
+table.board td.prop { white-space: normal; min-width: 12em; max-width: 16em; }
 table.board td.prop small { display: block; color: var(--muted); font-size: 11px; }
 table.board .hr { font-family: var(--mono); }
 table.board .hr.hi { color: var(--high); font-weight: 600; } table.board .hr.lo { color: var(--low); }
-table.board .dvp small { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; padding: 1px 5px; border-radius: 4px; margin-left: 4px; background: var(--line); color: var(--fg); }
+table.board .dvp small { display: inline-block; font-size: 10px; margin-left: 0; text-transform: uppercase; letter-spacing: .05em; padding: 1px 5px; border-radius: 4px; margin-left: 4px; background: var(--line); color: var(--fg); }
 table.board .dvp small.good { background: var(--high); color: #fff; } table.board .dvp small.bad { background: var(--low); color: #fff; }
 .boardnote { padding: 8px 16px 12px; margin: 0; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
 /* live tracker */
@@ -265,7 +273,7 @@ footer p { margin: 0 0 8px; }
   <h1>Robbie's NBA Multi</h1>
   <div class="date" id="slate-date">Fri 23 Oct 2026 · Sydney</div>
 </header>
-<nav class="jump" aria-label="Sections"><a href="#s-slate">Slate</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Games</a><a href="#s-results">Results</a></nav>
+<nav class="jump" aria-label="Sections"><a href="#s-slate">Slate</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Games</a><a href="#s-games" id="jump-board">Props</a><a href="#s-results">Results</a></nav>
 <p class="updated" id="updated">Last updated Thu 22 Oct, 4:00pm AEDT · sample run · 2 games on the slate</p>
 <p class="note">Pick the teams you care about, how many legs you want and how much risk, and the slip builds itself. Tap any leg below to add or remove it by hand. Odds are decimal and approximate; check your own bookie before placing.</p>
 
@@ -320,11 +328,92 @@ footer p { margin: 0 0 8px; }
 
 <script id="history-data" type="application/json">
 [
-  {"date": "Fri 23 Oct 2026", "slips": {
-    "safe": {"legs": [{"t": "Thunder to win", "h": 93, "r": ""}, {"t": "Embiid u24.5 pts", "h": 74, "r": ""}, {"t": "76ers to win", "h": 75, "r": ""}, {"t": "CLE-PHI under 236.5", "h": 86, "r": ""}], "odds": 7.90, "result": "Pending", "note": "6am: DEN-OKC under swapped for 76ers to win; 9am: total moved to 236.5"},
-    "balanced": {"legs": [{"t": "Embiid u24.5 pts", "h": 74, "r": ""}, {"t": "CLE-PHI under 236.5", "h": 86, "r": ""}, {"t": "DEN-OKC under 236.5", "h": 80, "r": ""}, {"t": "SGA o29.5 pts", "h": 76, "r": ""}], "odds": 12.62, "result": "Pending", "note": "9am: totals moved to 236.5"},
-    "aggressive": {"legs": [{"t": "Nuggets to win", "h": 1, "r": ""}, {"t": "CLE-PHI under 236.5", "h": 86, "r": ""}, {"t": "DEN-OKC under 236.5", "h": 80, "r": ""}, {"t": "Embiid u24.5 pts", "h": 74, "r": ""}], "odds": 24.98, "result": "Pending", "note": "9am: totals moved to 236.5, Nuggets out to 3.70"}
-  }}
+ {
+  "date": "Fri 23 Oct 2026",
+  "slips": {
+   "safe": {
+    "legs": [
+     {
+      "t": "Thunder to win",
+      "h": 93,
+      "r": "Won"
+     },
+     {
+      "t": "Embiid u24.5 pts",
+      "h": 74,
+      "r": "Won"
+     },
+     {
+      "t": "76ers to win",
+      "h": 75,
+      "r": "Won"
+     },
+     {
+      "t": "CLE-PHI under 236.5",
+      "h": 86,
+      "r": "Won"
+     }
+    ],
+    "odds": 7.9,
+    "result": "Won",
+    "note": "6am: DEN-OKC under swapped for 76ers to win; 9am: total moved to 236.5; PHI 114-106 CLE (220 total), OKC 96-84 DEN (180 total), Embiid 24 pts"
+   },
+   "balanced": {
+    "legs": [
+     {
+      "t": "Embiid u24.5 pts",
+      "h": 74,
+      "r": "Won"
+     },
+     {
+      "t": "CLE-PHI under 236.5",
+      "h": 86,
+      "r": "Won"
+     },
+     {
+      "t": "DEN-OKC under 236.5",
+      "h": 80,
+      "r": "Won"
+     },
+     {
+      "t": "SGA o29.5 pts",
+      "h": 76,
+      "r": "Lost"
+     }
+    ],
+    "odds": 12.62,
+    "result": "Lost",
+    "note": "9am: totals moved to 236.5; SGA 17 pts in a 96-84 grind"
+   },
+   "aggressive": {
+    "legs": [
+     {
+      "t": "Nuggets to win",
+      "h": 1,
+      "r": "Lost"
+     },
+     {
+      "t": "CLE-PHI under 236.5",
+      "h": 86,
+      "r": "Won"
+     },
+     {
+      "t": "DEN-OKC under 236.5",
+      "h": 80,
+      "r": "Won"
+     },
+     {
+      "t": "Embiid u24.5 pts",
+      "h": 74,
+      "r": "Won"
+     }
+    ],
+    "odds": 24.98,
+    "result": "Lost",
+    "note": "9am: totals moved to 236.5, Nuggets out to 3.70; Nuggets lost 96-84"
+   }
+  }
+ }
 ]
 </script>
 
@@ -337,7 +426,7 @@ footer p { margin: 0 0 8px; }
 
 <script id="slate-data" type="application/json">{
  "date": "Fri 23 Oct 2026 · Sydney",
- "updated": "Last updated Fri 23 Oct, 8:50am AEDT · 9am run · 2 games on the slate · Jarrett Allen says he expects to play (post-shootaround work in Philly); totals have moved to 236.5 at Sportsbet (237.5 / 236.5 US), so the under legs are now at 236.5; OKC shortened to 1.30.",
+ "updated": "Last updated Fri 23 Oct, 3:55pm AEDT · results graded: 76ers 114-106 Cavaliers, Thunder 96-84 Nuggets; Safe slip won, Balanced and Aggressive lost · next slate arrives with the 6pm run · 9am run notes: Jarrett Allen says he expects to play (post-shootaround work in Philly); totals have moved to 236.5 at Sportsbet (237.5 / 236.5 US), so the under legs are now at 236.5; OKC shortened to 1.30.",
  "sources": "Sources this run (32): FanDuel Research/numberFire, Sports Mole (both previews), Dimers (model pages, best bets, props), Stats Insider, SportsLine, Bleacher Nation, Doc's Sports, Sports Gambling Podcast, BettingNews (Covers/expert consensus), Oddschecker, Covers injuries, Rotowire, NBC Sports, PhillyVoice, Philadelphia Inquirer, Yahoo Sports (minutes report via Shams/Polymarket, lineup projection), SI, Bleacher Report, Field Level Media, Arab News, Fox Sports team stats, StatMuse game logs and team tables, Basketball Reference (blocked), Reddit r/sportsbook (blocked). 6am refresh: Dimers game pages (model and lineups), Sportsbet, Oddschecker US, CBS Sports injuries. 9am check: NBC Sports (Fedor on Allen), BasketNews (Cunningham), Yahoo Nuggets injury report.",
  "games": [
   {
@@ -820,7 +909,7 @@ footer p { margin: 0 0 8px; }
      "p": 0.58,
      "conf": "Medium",
      "cons": "n/a",
-     "team": "",
+     "team": "76ers",
      "group": "prop",
      "note": "Reported 30-minute cap; 13 points in the opener",
      "matchup": "Matchup: Mobley is one of the few bigs who guards Embiid straight up, and Cleveland held him under 25 in three of four meetings last season.",
@@ -2059,7 +2148,7 @@ footer p { margin: 0 0 8px; }
   function abbrOf(name) { var k = Object.keys(TEAMS); for (var i = 0; i < k.length; i++) if (TEAMS[k[i]].n === name) return k[i]; return null; }
   function sideAbbr(g, i) { var a = i === 0 ? g.away : g.home; return a || (g.teams ? abbrOf(g.teams[i]) : null); }
   function logoHTML(abbr, small) {
-    var t = TEAMS[abbr], cls = small ? ' sm' : '';
+    var t = TEAMS[abbr], cls = small === 'xs' ? ' xs' : small ? ' sm' : '';
     if (!t) return '<span class="badge' + cls + '" style="background:var(--muted)">' + esc(abbr || '?') + '</span>';
     return '<img class="logo' + cls + '" alt="" src="https://cdn.nba.com/logos/nba/' + t.id + '/primary/L/logo.svg" data-fb="https://a.espncdn.com/i/teamlogos/nba/500/' + t.e + '.png" data-abbr="' + abbr + '">';
   }
@@ -2068,7 +2157,7 @@ footer p { margin: 0 0 8px; }
       img.addEventListener('error', function () {
         if (img.dataset.fb) { img.src = img.dataset.fb; img.dataset.fb = ''; return; }
         var a = img.dataset.abbr, t = TEAMS[a], b = document.createElement('span');
-        b.className = 'badge' + (img.classList.contains('sm') ? ' sm' : ''); b.style.background = t ? t.c : 'var(--muted)'; b.textContent = a;
+        b.className = 'badge' + (img.classList.contains('sm') ? ' sm' : img.classList.contains('xs') ? ' xs' : ''); b.style.background = t ? t.c : 'var(--muted)'; b.textContent = a;
         img.replaceWith(b);
       });
     });
@@ -2076,6 +2165,12 @@ footer p { margin: 0 0 8px; }
   // Direction of a leg (over/under) and its game-level kind, used for same-game correlation checks.
   function legDir(l) { return /\bunder\b/i.test(l.text) ? 'under' : /\bover\b/i.test(l.text) ? 'over' : ''; }
   function gameTag(l) { var g = gameOfLeg(l); if (!g || DATA.games.length < 2) return ''; return (g.away || abbrOf(g.teams[0]) || g.teams[0]) + ' at ' + (g.home || abbrOf(g.teams[1]) || g.teams[1]) + ' · '; }
+  function legLogos(l) {
+    var g = gameOfLeg(l), a = l.team ? (TEAMS[l.team] ? l.team : abbrOf(l.team)) : null;
+    if (a) return '<span class="slip-logos">' + logoHTML(a, 'xs') + '</span>';
+    if (!g) return '';
+    return '<span class="slip-logos">' + logoHTML(sideAbbr(g, 0), 'xs') + logoHTML(sideAbbr(g, 1), 'xs') + '</span>';
+  }
   function gameOfLeg(l) { for (var i = 0; i < DATA.games.length; i++) if (DATA.games[i].legs.indexOf(l) >= 0) return DATA.games[i]; return null; }
   function edgeOf(l) { return l.p - 1 / l.odds; }
   function edgePct(l) { var e = Math.round(edgeOf(l) * 100); return (e > 0 ? '+' : '') + e + '%'; }
@@ -2271,10 +2366,11 @@ footer p { margin: 0 0 8px; }
     var tb = $('slip'); tb.innerHTML = '';
     legs.forEach(function (l, i) {
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td class="n">' + (i + 1) + '</td><td><b>' + esc(l.text) + '</b><span class="lv-slot" data-leg="' + esc(l.id) + '"></span><br><small style="color:var(--muted)">' + esc(gameTag(l)) + esc(l.note) + '</small></td>' +
+      tr.innerHTML = '<td class="n">' + (i + 1) + '</td><td>' + legLogos(l) + '<b>' + esc(l.text) + '</b><span class="lv-slot" data-leg="' + esc(l.id) + '"></span><br><small style="color:var(--muted)">' + esc(gameTag(l)) + esc(l.note) + '</small></td>' +
         '<td class="odds">' + l.odds.toFixed(2) + '</td><td>' + heatHTML(l) + '</td><td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td>' + esc(l.cons) + '</td>';
       tb.appendChild(tr);
     });
+    fixLogos(tb);
     $('slip-empty').hidden = legs.length > 0;
     var noteEl = $('slip-note'), gameCount = DATA.games.filter(gameSelected).length;
     if (!state.manual && lastBuild && lastBuild.total > lastBuild.withinRule) {
@@ -2295,6 +2391,7 @@ footer p { margin: 0 0 8px; }
     renderBest(ids);
     applyLive();
 
+    var jb = $('jump-board'); if (jb && !jb.dataset.wired) { jb.dataset.wired = '1'; jb.addEventListener('click', function () { state.view = 'board'; savePrefs(); render(); }); }
     var vc = $('view-chips'); vc.innerHTML = '';
     var hasProps = DATA.games.some(function (g) { return g.legs.some(function (l) { return l.group === 'prop'; }); });
     if (hasProps) {
@@ -2374,7 +2471,7 @@ footer p { margin: 0 0 8px; }
     var v = l.dvp; if (!v) return '<td class="dvp">—</td>';
     var tier = v.rank <= 50 ? 'stingy' : v.rank <= 100 ? 'average' : 'generous';
     var good = tier === 'average' ? '' : (tier === 'generous') !== isUnder(l) ? 'good' : 'bad';
-    return '<td class="dvp" data-v="' + v.rank + '" title="Rank ' + v.rank + ' of 150 team-position pairs, 1 allows the fewest">' + v.val + ' ' + esc(v.unit) + ' to ' + esc(v.pos) + '<small class="' + good + '">' + tier + '</small></td>';
+    return '<td class="dvp" data-v="' + v.rank + '" title="Opponent allows ' + v.val + ' ' + esc(v.unit) + ' per game to ' + esc(v.pos) + ' (rank ' + v.rank + ' of 150, 1 allows the fewest)"><small class="' + good + '">' + tier + '</small></td>';
   }
   var boardSort = { key: 'heat', dir: -1 };
   var BOARD_COLS = [
@@ -2404,7 +2501,7 @@ footer p { margin: 0 0 8px; }
     var head = $('board-head'), body = $('board-body'); head.innerHTML = ''; body.innerHTML = '';
     var tr = document.createElement('tr');
     BOARD_COLS.forEach(function (c) {
-      var th = document.createElement('th'); th.textContent = c.label; if (c.title) th.title = c.title;
+      var th = document.createElement('th'); th.textContent = c.label; th.className = 'c-' + c.key; if (c.title) th.title = c.title;
       if (boardSort.key === c.key) th.setAttribute('aria-sort', boardSort.dir < 0 ? 'descending' : 'ascending');
       th.addEventListener('click', function () { if (boardSort.key === c.key) boardSort.dir = -boardSort.dir; else { boardSort.key = c.key; boardSort.dir = c.key === 'prop' ? 1 : -1; } renderBoard(ids); });
       tr.appendChild(th);
@@ -2417,17 +2514,18 @@ footer p { margin: 0 0 8px; }
       var l = row.l, g = row.g, r = l.recent || [], r20 = l.recent20 || r, t = document.createElement('tr');
       t.className = 'brow'; t.setAttribute('aria-pressed', ids.indexOf(l.id) >= 0 ? 'true' : 'false'); t.tabIndex = 0; t.title = 'Tap to add or remove from your slip';
       var med = median(r);
-      t.innerHTML = '<td class="prop"><b>' + esc(l.text) + '</b>' + sigHTML(l) + '<small>' + esc(g.title) + ' · ' + esc(g.time || '') + ' ' + streak(l) + '</small></td>' +
-        '<td>' + (typeof l.line === 'number' ? l.line : '—') + '</td><td class="odds">' + l.odds.toFixed(2) + '</td><td>' + (med === null ? '—' : med) + '</td>' +
-        hrCell(hitRate(l, r.slice(-5))) + hrCell(hitRate(l, r.slice(-10))) + hrCell(r20.length >= 15 ? hitRate(l, r20.slice(-20)) : null) + hrCell(l.vs ? hitRate(l, l.vs.games) : null) +
-        dvpCell(l) + '<td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td>' + heatHTML(l) + '</td>';
+      t.innerHTML = '<td class="prop">' + legLogos(l) + '<b>' + esc(l.text) + '</b><small>' + esc(gameTag(l).replace(/ · $/, '') || g.title) + ' ' + streak(l) + '</small></td>' +
+        '<td>' + (typeof l.line === 'number' ? l.line : '—') + '</td><td class="odds">' + l.odds.toFixed(2) + '</td><td class="c-med">' + (med === null ? '—' : med) + '</td>' +
+        hrCell(hitRate(l, r.slice(-5))) + hrCell(hitRate(l, r.slice(-10))) + hrCell(r20.length >= 15 ? hitRate(l, r20.slice(-20)) : null).replace('<td', '<td class="c-l20"') + hrCell(l.vs ? hitRate(l, l.vs.games) : null) +
+        dvpCell(l) + '<td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td class="heat-c">' + heatHTML(l, true) + '</td>';
       t.addEventListener('click', function () { toggleLeg(l); });
       t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleLeg(l); } });
       body.appendChild(t);
     });
-    $('board-note').textContent = rows.length ? 'Hit rates count games the prop would have landed at tonight\'s line (' + (rows.some(function (x) { return isUnder(x.l); }) ? 'below it for unders, above it for overs' : 'above the line') + '). Green is 60% or better, red 40% or worse. Defence is what the opponent allowed per game to that position last season. Tap a column to sort, tap a row to add it to your slip.' : 'No player props on the selected games.';
+    fixLogos(body);
+    $('board-note').textContent = rows.length ? 'Hit rates count games the prop would have landed at tonight\'s line (' + (rows.some(function (x) { return isUnder(x.l); }) ? 'below it for unders, above it for overs' : 'above the line') + '). Green is 60% or better, red 40% or worse. Defence is what the opponent allowed per game to that position last season. Tap a column to sort, tap a row to add it to your slip; swipe sideways if the table is wider than your screen.' : 'No player props on the selected games.';
   }
-  function heatHTML(l) { var h = heatOf(l); return '<span class="heat" title="Heat ' + h + ' of 100"><i style="--h:' + (0.15 + 0.85 * h / 100).toFixed(2) + '"></i>' + h + ' <span style="color:var(--muted)">' + heatLabel(h) + '</span></span>'; }
+  function heatHTML(l, bare) { var h = heatOf(l); return '<span class="heat" title="Heat ' + h + ' of 100, ' + heatLabel(h) + '"><i style="--h:' + (0.15 + 0.85 * h / 100).toFixed(2) + '"></i>' + h + (bare ? '' : ' <span style="color:var(--muted)">' + heatLabel(h) + '</span>') + '</span>'; }
   function factorsHTML(l) {
     if (!l.factors) return '';
     var out = '<span class="factors" aria-label="Factors">';
