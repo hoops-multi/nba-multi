@@ -74,11 +74,12 @@ td.odds { font-family: var(--mono); white-space: nowrap; }
 .game { padding: 16px; min-width: 0; }
 .game .meta { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .legs { display: grid; gap: 6px; margin: 10px 0; }
-.leg { display: grid; grid-template-columns: 1.4em 1fr auto auto; gap: 10px; align-items: center; text-align: left; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); cursor: pointer; }
+.leg { display: grid; grid-template-columns: 1.4em minmax(0, 1fr) 12em 5.2em; gap: 10px; align-items: center; text-align: left; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); cursor: pointer; }
 .leg[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .leg .box { width: 1.1em; height: 1.1em; border: 2px solid var(--muted); border-radius: 3px; }
 .leg[aria-pressed="true"] .box { background: var(--accent); border-color: var(--accent); }
-.leg .o { font-family: var(--mono); }
+.leg .o { font-family: var(--mono); white-space: nowrap; }
+.leg .conf { justify-self: end; }
 .leg small { display: block; color: var(--muted); font-size: 12px; }
 .game p { margin: 6px 0 0; font-size: 15px; }
 .risk { color: var(--low); font-weight: 500; }
@@ -264,7 +265,7 @@ details[open] summary::before { transform: rotate(90deg); }
 .trend-cap { font-size: 11px; color: var(--muted); margin-left: 6px; }
 footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
 footer p { margin: 0 0 8px; }
-@media (max-width: 480px) { th, td { padding: 8px 10px; } .leg { grid-template-columns: 1.4em 1fr auto; } .leg .conf, .leg .book, td.edge, th.edge, .sig { display: none; } }
+@media (max-width: 480px) { th, td { padding: 8px 10px; } .leg { grid-template-columns: 1.4em minmax(0, 1fr) 6.5em; } .leg .conf, .leg .book, td.edge, th.edge, .sig { display: none; } }
 @media (prefers-reduced-motion: no-preference) { .chip, .leg { transition: background .15s, border-color .15s; } }
 </style>
 
