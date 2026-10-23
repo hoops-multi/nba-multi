@@ -372,6 +372,7 @@ footer p { margin: 0 0 8px; }
 <p class="note" style="margin:0 0 10px">Each day we record the default 4-leg slip at every risk level (all teams selected) and grade it once the games finish. The tally assumes a flat $10 on each. Graded legs show ✓ or ✗ so you can see which calls land, and the Hot-leg card tracks how often legs rated 70+ actually hit.</p>
 <div class="tally" id="tally"></div>
 <div class="panel curve" id="curve" hidden></div>
+<div class="row viewrow" id="hist-days"></div>
 <div class="panel"><div class="tablewrap"><table class="hist"><thead><tr><th>Date</th><th>Safe</th><th>Balanced</th><th>Aggressive</th></tr></thead><tbody id="history"></tbody></table></div><div class="archive-empty" id="history-empty" hidden>No graded days yet.</div></div>
 
 <script id="history-data" type="application/json">
@@ -2404,6 +2405,7 @@ footer p { margin: 0 0 8px; }
     }
     return esc(g.title);
   }
+  var histDay = 'all';
   function renderHistory() {
     var hist = [];
     try { hist = JSON.parse(document.getElementById('history-data').textContent) || []; } catch (e) { hist = []; }
@@ -2434,8 +2436,15 @@ footer p { margin: 0 0 8px; }
     var hc = document.createElement('div'); hc.className = 'panel card';
     hc.innerHTML = '<div class="k">Hot legs (70+)</div><div class="v">' + (hot.n ? Math.round(hot.hit / hot.n * 100) + '%' : '—') + '</div><div class="s">' + (hot.n ? hot.hit + ' of ' + hot.n + ' landed' : 'no graded legs yet') + (cool.n ? ' · cooler legs ' + Math.round(cool.hit / cool.n * 100) + '%' : '') + '</div>';
     tl.appendChild(hc);
+    // Day picker: All, or one day's three slips.
+    var days = hist.slice().reverse(), dp = $('hist-days'); dp.innerHTML = '';
+    if (!days.some(function (d) { return d.date === histDay; })) histDay = 'all';
+    if (days.length > 1) {
+      dp.appendChild(chip('All days', histDay === 'all', function () { histDay = 'all'; renderHistory(); }));
+      days.forEach(function (d) { var lab = String(d.date).replace(/ \d{4}$/, ''); dp.appendChild(chip(lab, histDay === d.date, function () { histDay = d.date; renderHistory(); })); });
+    }
     var tb = $('history'); tb.innerHTML = '';
-    hist.slice().reverse().forEach(function (d) {
+    days.filter(function (d) { return histDay === 'all' || d.date === histDay; }).forEach(function (d) {
       var tr = document.createElement('tr'), cells = '<td class="d">' + esc(d.date) + '</td>';
       levels.forEach(function (k) {
         var sl = d.slips && d.slips[k];
