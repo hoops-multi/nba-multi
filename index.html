@@ -306,7 +306,8 @@ footer p { margin: 0 0 8px; }
   .hist td.d { font-weight: 600; color: var(--fg); padding-bottom: 2px; }
   .hist td:nth-child(n+2)::before { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
   .hist td:nth-child(2)::before { content: "Safe"; } .hist td:nth-child(3)::before { content: "Balanced"; } .hist td:nth-child(4)::before { content: "Aggressive"; }
-  .live .sc .tm { font-size: 17px; } .live .sc .tm b { font-size: 19px; }
+  .live .sc { grid-template-columns: 1fr 1fr; gap: 4px 8px; } .live .sc .st { grid-column: 1 / -1; order: 3; }
+  .live .sc .tm { font-size: 16px; gap: 6px; } .live .sc .tm b { font-size: 20px; margin-left: auto; } .live .sc .tm.h b { margin-left: 0; margin-right: auto; }
   .total .v { font-size: 22px; }
   .curve .hd { flex-direction: column; }
 }
@@ -319,9 +320,12 @@ footer p { margin: 0 0 8px; }
   <h1>Robbie's NBA Multi</h1>
   <div class="date" id="slate-date">Fri 23 Oct 2026 · Sydney</div>
 </header>
-<nav class="jump" aria-label="Sections"><a href="#s-slate">Slate</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Games</a><a href="#s-games" id="jump-board">Props</a><a href="#s-results">Results</a></nav>
+<nav class="jump" aria-label="Sections"><a href="#s-live">Live</a><a href="#s-slate">Slate</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Games</a><a href="#s-games" id="jump-board">Props</a><a href="#s-results">Results</a></nav>
 <p class="updated" id="updated">Last updated Thu 22 Oct, 4:00pm AEDT · sample run · 2 games on the slate</p>
 <p class="note">Pick the teams you care about, how many legs you want and how much risk, and the slip builds itself. Tap any leg below to add or remove it by hand. Odds are decimal and approximate; check your own bookie before placing.</p>
+
+<div class="eyebrow" id="s-live">Live, your slip against the game</div>
+<div class="panel"><div class="live" id="live"></div><div class="livenote" id="live-note">Waiting for tip-off. While a game is on, this panel refreshes itself in your browser about every 45 seconds from the NBA and ESPN public scoreboards. Nothing here is a bookmaker's settlement.</div></div>
 
 <div class="eyebrow" id="s-slate">Games on this slate</div>
 <div class="panel"><ul class="sched" id="sched"></ul><div class="empty" id="sched-empty" hidden>No NBA games in this slate.</div></div>
@@ -358,9 +362,6 @@ footer p { margin: 0 0 8px; }
     <div><div class="k">Our chance it all lands</div><div class="v" id="t-prob">—</div></div>
   </div>
 </div>
-
-<div class="eyebrow">Live, your slip against the game</div>
-<div class="panel"><div class="live" id="live"></div><div class="livenote" id="live-note">Waiting for tip-off. While a game is on, this panel refreshes itself in your browser about every 45 seconds from the NBA and ESPN public scoreboards. Nothing here is a bookmaker's settlement.</div></div>
 
 <div class="eyebrow" id="s-games">Games and candidate legs</div>
 <div class="row viewrow" id="view-chips"></div>
