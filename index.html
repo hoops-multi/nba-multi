@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Robbie's NBA Multi</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -197,7 +201,7 @@ td.edge { font-family: var(--mono); white-space: nowrap; } td.edge.pos { color: 
 .help p, .help > :not(summary) { padding: 0 16px 12px; margin: 0; }
 .viewrow { margin: 0 0 8px; }
 .viewrow .chip { font-size: 12px; padding: 4px 10px; }
-table.board { font-size: 12.5px; }
+table.board { font-size: 12.5px; border-collapse: separate; border-spacing: 0; }
 table.board th, table.board td { padding: 8px 8px; }
 table.board th:first-child, table.board td.prop { position: sticky; left: 0; background: var(--surface); z-index: 1; }
 table.board tr.brow:hover td { background: var(--bg); }
@@ -279,6 +283,35 @@ footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line);
 footer p { margin: 0 0 8px; }
 @media (max-width: 480px) { th, td { padding: 8px 10px; } .leg { grid-template-columns: 1.4em minmax(0, 1fr) 6.5em; } .leg .conf, .leg .book, td.edge, th.edge, .sig { display: none; } }
 @media (prefers-reduced-motion: no-preference) { .chip, .leg { transition: background .15s, border-color .15s; } }
+/* phone layout: single column, stacked slip rows and history cards, one-row jump bar */
+@media (max-width: 600px) {
+  .jump { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 10px -16px 0; padding: 6px 16px; }
+  .jump::-webkit-scrollbar { display: none; }
+  .jump a { flex: none; }
+  .updated { font-size: 11px; }
+  .slipt thead { display: none; }
+  .slipt tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 10px 12px; border-top: 1px solid var(--line); }
+  .slipt tr:first-child { border-top: 0; }
+  .slipt td { border: 0; padding: 0; }
+  .slipt td.n { width: 28px; flex: none; }
+  .slipt td:nth-child(2) { flex: 1 1 calc(100% - 38px); min-width: 0; }
+  .slipt td.odds { margin-left: 38px; font-size: 14px; }
+  .slipt td:nth-child(4), .slipt td:nth-child(6) { font-size: 13px; }
+  .slipt td:nth-child(6)::before { content: "consensus "; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .slipt td:nth-child(6):empty, .slipt td:nth-child(6)[data-na] { display: none; }
+  .hist thead { display: none; }
+  .hist tr { display: block; padding: 8px 12px 10px; border-top: 1px solid var(--line); }
+  .hist tr:first-child { border-top: 0; }
+  .hist td { display: block; border: 0; padding: 4px 0; }
+  .hist td.d { font-weight: 600; color: var(--fg); padding-bottom: 2px; }
+  .hist td:nth-child(n+2)::before { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .hist td:nth-child(2)::before { content: "Safe"; } .hist td:nth-child(3)::before { content: "Balanced"; } .hist td:nth-child(4)::before { content: "Aggressive"; }
+  .live .sc .tm { font-size: 17px; } .live .sc .tm b { font-size: 19px; }
+  .total .v { font-size: 22px; }
+  .curve .hd { flex-direction: column; }
+}
+/* touch: bigger targets */
+@media (pointer: coarse) { .chip, .jump a, .more, .viewrow .chip, .gtools .chip, .srcrow .chip { min-height: 36px; display: inline-flex; align-items: center; } details summary { min-height: 36px; } .leg { padding: 10px 10px; } table.board tr.brow td { padding-top: 10px; padding-bottom: 10px; } }
 </style>
 
 <div class="wrap">
@@ -309,7 +342,7 @@ footer p { margin: 0 0 8px; }
 <div class="eyebrow" id="s-slip">Your slip</div>
 <div class="panel">
   <div class="tablewrap">
-  <table>
+  <table class="slipt">
     <thead><tr><th></th><th>Leg</th><th>Odds</th><th title="Our 0-100 rating from probability, price edge, consensus and matchup factors">Heat</th><th class="edge" title="Our probability minus the probability implied by the price">Edge</th><th title="How many of the sources that tipped this market agree with the leg">Consensus</th></tr></thead>
     <tbody id="slip"></tbody>
   </table>
