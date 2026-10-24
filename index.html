@@ -1154,7 +1154,7 @@ footer p { margin: 0 0 8px; }
       });
       fixLogos(el);
     }
-    if (LIVE.error && !matched) note.textContent = 'This shared page cannot load live data itself (' + LIVE.error + '). Use the ESPN or NBA.com links above for the live score; your legs are graded on the evening run.';
+    if (LIVE.error && !matched) note.innerHTML = 'This claude.ai copy cannot load live data (' + esc(LIVE.error) + '). For live scores open the <a href="https://hoops-multi.github.io/nba-multi/">GitHub Pages copy</a>, or use the ESPN and NBA.com links above; your legs are graded on the evening run.';
     else if (!matched) note.textContent = 'Live data has not loaded. Use the ESPN or NBA.com links above for the live score. When the feed is available this panel refreshes itself about every 45 seconds during games.';
     else note.textContent = (allFinal ? 'All games final. ' : anyLive ? 'Live. ' : 'Pre-game. ') + 'Updated ' + new Date(LIVE.fetchedAt).toLocaleTimeString() + ' from ' + LIVE.source + '. Pace figures are simple projections, and "Won" / "Lost" here is our read of the box score, not a bookmaker\'s settlement.';
     scheduleLive(anyLive, allFinal, matched);
@@ -1225,6 +1225,7 @@ footer p { margin: 0 0 8px; }
       }).catch(function (e2) { LIVE.error = String((e && e.message) || e2 && e2.message || 'blocked'); });
     }).then(function () { LIVE.fetchedAt = Date.now(); staticFinals(); applyLive(); });
   }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && DATA.games.length) pollLive(); });
   // A run that fires after a game has finished writes final [away, home] and box [...] into the slate, so the result shows even without a feed.
   function staticFinals() {
     DATA.games.forEach(function (g) {
