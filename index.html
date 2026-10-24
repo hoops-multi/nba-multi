@@ -1154,7 +1154,7 @@ footer p { margin: 0 0 8px; }
       });
       fixLogos(el);
     }
-    if (LIVE.error && !matched) note.innerHTML = 'This claude.ai copy cannot load live data (' + esc(LIVE.error) + '). For live scores open the <a href="https://hoops-multi.github.io/nba-multi/">GitHub Pages copy</a>, or use the ESPN and NBA.com links above; your legs are graded on the evening run.';
+    if (LIVE.error && !matched) note.innerHTML = /github\.io$/.test(location.hostname) ? 'The live feed could not be reached just now (' + esc(LIVE.error) + '). This panel retries every few minutes; pull to refresh, or use the ESPN and NBA.com links above.' : 'This claude.ai copy cannot load live data (' + esc(LIVE.error) + '). For live scores open the <a href="https://hoops-multi.github.io/nba-multi/">GitHub Pages copy</a>, or use the ESPN and NBA.com links above; your legs are graded on the evening run.';
     else if (!matched) note.textContent = 'Live data has not loaded. Use the ESPN or NBA.com links above for the live score. When the feed is available this panel refreshes itself about every 45 seconds during games.';
     else note.textContent = (allFinal ? 'All games final. ' : anyLive ? 'Live. ' : 'Pre-game. ') + 'Updated ' + new Date(LIVE.fetchedAt).toLocaleTimeString() + ' from ' + LIVE.source + '. Pace figures are simple projections, and "Won" / "Lost" here is our read of the box score, not a bookmaker\'s settlement.';
     scheduleLive(anyLive, allFinal, matched);
