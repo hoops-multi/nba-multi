@@ -320,15 +320,13 @@ footer p { margin: 0 0 8px; }
   <h1>Robbie's NBA Multi</h1>
   <div class="date" id="slate-date">Fri 23 Oct 2026 · Sydney</div>
 </header>
-<nav class="jump" aria-label="Sections"><a href="#s-live">Live</a><a href="#s-slate">Slate</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Games</a><a href="#s-games" id="jump-board">Props</a><a href="#s-results">Results</a></nav>
+<nav class="jump" aria-label="Sections"><a href="#s-live">Games</a><a href="#s-build">Build</a><a href="#s-slip">Slip</a><a href="#s-games">Legs</a><a href="#s-games" id="jump-board">Props</a><a href="#s-results">Results</a></nav>
 <p class="updated" id="updated">Last updated Thu 22 Oct, 4:00pm AEDT · sample run · 2 games on the slate</p>
 <p class="note">Pick the teams you care about, how many legs you want and how much risk, and the slip builds itself. Tap any leg below to add or remove it by hand. Odds are decimal and approximate; check your own bookie before placing.</p>
 
-<div class="eyebrow" id="s-live">Live, your slip against the game</div>
+<div class="eyebrow" id="s-live">Games on this slate, live once they tip off</div>
 <div class="panel"><div class="live" id="live"></div><div class="livenote" id="live-note">Waiting for tip-off. While a game is on, this panel refreshes itself in your browser about every 45 seconds from the NBA and ESPN public scoreboards. Nothing here is a bookmaker's settlement.</div></div>
 
-<div class="eyebrow" id="s-slate">Games on this slate</div>
-<div class="panel"><ul class="sched" id="sched"></ul><div class="empty" id="sched-empty" hidden>No NBA games in this slate.</div></div>
 
 <div class="eyebrow">Today's best bets</div>
 <div class="best" id="best"></div>
@@ -1126,7 +1124,7 @@ footer p { margin: 0 0 8px; }
       var r = l && g && LIVE.games[g.id] ? legLive(l, g) : null;
       slot.innerHTML = r && r.cls !== 'na' && r.cls !== 'pre' ? '<span class="lv ' + r.cls + '" title="' + esc(r.detail) + '">' + esc(r.label) + '</span>' : '';
     });
-    var el = $('live'); if (!el) return; el.innerHTML = '';
+    var el = $('live'); if (!el) return; el.innerHTML = DATA.games.length ? '' : '<div class="empty">No NBA games in this slate.</div>';
     var anyLive = false, allFinal = DATA.games.length > 0, matched = 0;
     DATA.games.forEach(function (g) {
       var lg = LIVE.games[g.id]; if (!lg) { allFinal = false; return; } matched++;
@@ -1139,17 +1137,19 @@ footer p { margin: 0 0 8px; }
       var mine = legs.filter(function (l) { return l.game === g.id; });
       if (mine.length) {
         html += '<div class="ll">' + mine.map(function (l) { var r = legLive(l, g); return '<div><span>' + esc(l.text) + (r.detail ? ' <small>' + esc(r.detail) + '</small>' : '') + '</span><span class="lv ' + r.cls + '">' + esc(r.label) + '</span></div>'; }).join('') + '</div>';
-      } else { html += '<div class="ll"><small>No legs from this game on your slip.</small></div>'; }
+      } else if (lg.state === 'pre' && g.brief) { html += '<div class="ll"><small>' + esc(g.brief) + '</small></div>'; }
+      else { html += '<div class="ll"><small>No legs from this game on your slip.</small></div>'; }
       box.innerHTML = html; el.appendChild(box);
     });
     fixLogos(el);
     var note = $('live-note');
+    if (!matched) note.parentNode.insertBefore(note, el); else note.parentNode.appendChild(note);
     if (!matched) {
       // No live data in this view (the feed is blocked or the games are not on today's board): offer the live score links instead.
       DATA.games.forEach(function (g) {
         var box = document.createElement('div'); box.className = 'lg';
         box.innerHTML = '<div class="sc"><span class="tm">' + logoHTML(sideAbbr(g, 0), true) + '<span>' + esc(g.teams[0]) + '</span></span><span class="st">' + esc(g.time || '') + '</span><span class="tm h">' + logoHTML(sideAbbr(g, 1), true) + '<span>' + esc(g.teams[1]) + '</span></span></div>' +
-          '<div class="ll"><div><span>Live score and box score</span><span><a href="https://www.espn.com/nba/scoreboard" target="_blank" rel="noopener">ESPN</a> · <a href="https://www.nba.com/games" target="_blank" rel="noopener">NBA.com</a></span></div></div>';
+          '<div class="ll">' + (g.brief ? '<small>' + esc(g.brief) + '</small>' : '') + '<div><span>Live score and box score</span><span><a href="https://www.espn.com/nba/scoreboard" target="_blank" rel="noopener">ESPN</a> · <a href="https://www.nba.com/games" target="_blank" rel="noopener">NBA.com</a></span></div></div>';
         el.appendChild(box);
       });
       fixLogos(el);
@@ -1209,8 +1209,11 @@ footer p { margin: 0 0 8px; }
   function pollLive() {
     if (!DATA.games.length) return;
     var espnBase = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/';
-    getJSON(espnBase + 'scoreboard?dates=' + usDate(-1) + '-' + usDate(1)).then(function (sb) {
-      return matchGames((sb.events || []).map(espnScore));
+    // ESPN rejects a date range (HTTP 400), so ask for yesterday, today and tomorrow (US dates) one at a time and merge.
+    Promise.all([-1, 0, 1].map(function (d) { return getJSON(espnBase + 'scoreboard?dates=' + usDate(d)).catch(function () { return null; }); })).then(function (boards) {
+      var ok = boards.filter(Boolean); if (!ok.length) throw new Error('scoreboard unavailable');
+      var events = []; ok.forEach(function (sb) { events = events.concat(sb.events || []); });
+      return matchGames(events.map(espnScore));
     }).then(function (found) {
       LIVE.games = found; LIVE.source = 'ESPN'; LIVE.error = '';
       var need = Object.keys(found).filter(function (gid) { return found[gid].state !== 'pre' && DATA.games.some(function (g) { return g.id === gid && g.legs.some(function (l) { return l.group === 'prop'; }); }); });
@@ -1236,7 +1239,6 @@ footer p { margin: 0 0 8px; }
     });
   }
 
-  renderSchedule();
   renderHistory();
   render();
   pollLive();
