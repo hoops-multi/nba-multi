@@ -372,7 +372,7 @@ footer p { margin: 0 0 8px; }
 <p class="note" style="margin:0 0 10px">Each day we record the default 4-leg slip at every risk level (all teams selected) and grade it once the games finish. The tally assumes a flat $10 on each. Graded legs show ✓ or ✗ so you can see which calls land, and the Hot-leg card tracks how often legs rated 70+ actually hit.</p>
 <div class="tally" id="tally"></div>
 <div class="panel curve" id="curve" hidden></div>
-<div class="panel learn"><details class="more"><summary>What we're learning <span class="sumx" id="learn-sum"></span></summary><div class="tablewrap"><table class="hist learnt"><thead><tr><th>Leg type</th><th>Graded</th><th>Landed</th><th>We said</th><th>Gap</th></tr></thead><tbody id="learn-body"></tbody></table></div><p class="note" id="learn-note" style="margin:8px 0 0"></p></details></div>
+<div class="panel learn"><details class="more"><summary>What we're learning <span class="sumx" id="learn-sum"></span></summary><div class="tablewrap"><table class="hist learnt"><thead><tr><th>Leg type</th><th>Graded</th><th>Landed</th><th>We said</th><th>Gap</th><th>Beat close</th></tr></thead><tbody id="learn-body"></tbody></table></div><p class="note" id="learn-note" style="margin:8px 0 0"></p></details></div>
 <div class="row viewrow" id="hist-days"></div>
 <div class="panel"><div class="tablewrap"><table class="hist"><thead><tr><th>Date</th><th>Safe</th><th>Balanced</th><th>Aggressive</th></tr></thead><tbody id="history"></tbody></table></div><div class="archive-empty" id="history-empty" hidden>No graded days yet.</div></div>
 
@@ -785,21 +785,27 @@ footer p { margin: 0 0 8px; }
   var LEG_TYPES = ['Favourite to win', 'Underdog to win', 'Spread', 'Total over', 'Total under', 'Prop over', 'Prop under'];
   function renderLearning(hist) {
     var body = $('learn-body'), sum = $('learn-sum'), note = $('learn-note'); if (!body) return;
-    var rows = {}, bands = { 'Heat 70+': [], 'Heat 55-69': [], 'Heat under 55': [] }, all = [];
+    var rows = {}, bands = { 'Heat 70+': [], 'Heat 55-69': [], 'Heat under 55': [] }, buckets = { 'We said 60%+': [], 'We said 50-59%': [], 'We said under 50%': [] }, all = [];
     hist.forEach(function (d) { (d.pool || []).forEach(function (l) {
       var r = String(l.r || '').toLowerCase(); if (r !== 'won' && r !== 'lost') return;
-      var x = { hit: r === 'won' ? 1 : 0, p: +l.p || 0 }; all.push(x);
+      // clv: did the price shorten between our pick and tip-off? (closing implied minus our implied, in probability points)
+      var clv = (+l.close > 1 && +l.odds > 1) ? (1 / +l.close - 1 / +l.odds) : null;
+      var x = { hit: r === 'won' ? 1 : 0, p: +l.p || 0, clv: clv }; all.push(x);
       (rows[l.type] = rows[l.type] || []).push(x);
       var h = +l.h; (h >= 70 ? bands['Heat 70+'] : h >= 55 ? bands['Heat 55-69'] : bands['Heat under 55']).push(x);
+      (x.p >= 0.6 ? buckets['We said 60%+'] : x.p >= 0.5 ? buckets['We said 50-59%'] : buckets['We said under 50%']).push(x);
     }); });
     function line(label, arr, strong) {
       if (!arr.length) return '';
       var n = arr.length, hit = arr.reduce(function (a, x) { return a + x.hit; }, 0), said = arr.reduce(function (a, x) { return a + x.p; }, 0) / n;
       var gap = Math.round((hit / n - said) * 100), cls = gap >= 5 ? 'up' : gap <= -5 ? 'down' : '';
-      return '<tr' + (strong ? ' style="font-weight:600"' : '') + '><td>' + esc(label) + '</td><td>' + n + '</td><td>' + Math.round(hit / n * 100) + '%</td><td>' + Math.round(said * 100) + '%</td><td class="gap ' + cls + '">' + (gap > 0 ? '+' : '') + gap + '</td></tr>';
+      var withClv = arr.filter(function (x) { return x.clv !== null; }), beat = withClv.filter(function (x) { return x.clv > 0; }).length;
+      var clvTxt = withClv.length ? Math.round(beat / withClv.length * 100) + '%' : '—';
+      return '<tr' + (strong ? ' style="font-weight:600"' : '') + '><td>' + esc(label) + '</td><td>' + n + '</td><td>' + Math.round(hit / n * 100) + '%</td><td>' + Math.round(said * 100) + '%</td><td class="gap ' + cls + '">' + (gap > 0 ? '+' : '') + gap + '</td><td>' + clvTxt + '</td></tr>';
     }
     var html = LEG_TYPES.map(function (t) { return line(t, rows[t] || []); }).join('');
     html += Object.keys(bands).map(function (b) { return line(b, bands[b]); }).join('');
+    html += Object.keys(buckets).map(function (b) { return line(b, buckets[b]); }).join('');
     html += line('All legs', all, true);
     body.innerHTML = html;
     sum.textContent = all.length ? all.length + ' legs graded' : 'no graded legs yet';
@@ -807,7 +813,7 @@ footer p { margin: 0 0 8px; }
     note.textContent = (applied.length
       ? 'Adjustments the run applied to today\'s probabilities: ' + applied.map(function (k) { return k.toLowerCase() + ' ' + (cal[k].adj > 0 ? '+' : '') + Math.round(cal[k].adj * 100) + ' pts (' + cal[k].n + ' graded)'; }).join(', ') + '. '
       : 'No adjustments yet: a type needs about 30 graded legs before the run moves its probabilities. ')
-      + '"We said" is the average probability we gave those legs; a positive gap means they landed more often than we said.';
+      + '"We said" is the average probability we gave those legs; a positive gap means they landed more often than we said. "Beat close" is how often the price shortened after we picked the leg, the quickest sign that picks are ahead of the market; 50% is break-even, 55%+ over 100 legs is a real edge.';
   }
   // Running profit at $10 a day, one line per risk level, graded days only.
   function renderCurve(hist, levels) {
