@@ -181,7 +181,8 @@ td.edge { font-family: var(--mono); white-space: nowrap; } td.edge.pos { color: 
 .corr b { color: var(--fg); }
 /* sources row */
 .srcrow .chip { font-size: 12px; padding: 4px 10px; }
-.srcrow .chip[aria-pressed="false"] { text-decoration: line-through; opacity: .7; }
+.sliptools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 16px 14px; } .sliptools a.chip { text-decoration: none; display: inline-block; } .sliptools .chip[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
+.srcrow .chip[aria-pressed="false"] { text-decoration: line-through; opacity: .7; } #book-chips .chip[aria-pressed="false"] { text-decoration: none; opacity: 1; }
 .more { font: inherit; font-size: 12px; color: var(--muted); background: none; border: 0; padding: 4px 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .srcdetail { display: flex; flex-wrap: wrap; gap: 6px 10px; padding: 4px 0 2px; align-items: center; }
@@ -338,6 +339,7 @@ footer p { margin: 0 0 8px; }
   <div class="row"><span class="label">Legs</span><span id="leg-chips" class="row"></span></div>
   <div class="row"><span class="label">Risk</span><span id="risk-chips" class="row"></span><span class="riskhelp" id="risk-help"></span></div>
   <div class="row"><span class="label">Stake</span><label>$ <input class="stake" id="stake" type="number" min="1" step="1" value="10" inputmode="numeric"></label></div>
+  <div class="row srcrow"><span class="label" title="Show each leg at this bookie's line and price">Bookie</span><span id="book-chips" class="row"></span><span class="riskhelp" id="book-help"></span></div>
   <div class="row srcrow"><span class="label" title="Switch a source type off and the probabilities, consensus and heat rebuild without it">Sources</span><span id="src-chips" class="row"></span><button type="button" class="more" id="src-more" aria-expanded="false">Fine-tune</button></div>
   <div class="srcdetail" id="src-detail" hidden></div>
 </div>
@@ -361,6 +363,7 @@ footer p { margin: 0 0 8px; }
     <div><div class="k">Returns on stake</div><div class="v" id="t-return">—</div></div>
     <div><div class="k">Our chance it all lands</div><div class="v" id="t-prob">—</div></div>
   </div>
+  <div class="sliptools"><button type="button" class="chip" id="copy-slip">Copy slip</button><a class="chip" id="open-book" target="_blank" rel="noopener">Open Sportsbet</a><span class="riskhelp" id="copy-note"></span></div>
 </div>
 
 <div class="eyebrow" id="s-games">Games and candidate legs</div>
@@ -395,16 +398,16 @@ footer p { margin: 0 0 8px; }
     balanced:   {label: 'Balanced',   help: 'Our best-value legs at 50%+ each, up to two per game. The default.', minP: 0.50, perGame: 2},
     aggressive: {label: 'Aggressive', help: 'Allows underdogs and longer props, up to three per game. Big payout, low chance.', minP: 0.0, perGame: 3}
   };
-  var state = { teams: {}, legs: 4, risk: 'balanced', manual: null, stake: 10, detail: false, srcOff: {}, typeOff: {} };
+  var state = { teams: {}, legs: 4, risk: 'balanced', manual: null, stake: 10, detail: false, srcOff: {}, typeOff: {}, book: 'Sportsbet' };
   try {
     var saved = JSON.parse(localStorage.getItem('multi-prefs') || '{}');
     if (saved.legs) state.legs = saved.legs;
     if (saved.risk && RISK[saved.risk]) state.risk = saved.risk;
     if (saved.stake) state.stake = saved.stake;
     if (saved.detail) state.detail = true; if (saved.view === 'board') state.view = 'board';
-    if (saved.srcOff) state.srcOff = saved.srcOff; if (saved.typeOff) state.typeOff = saved.typeOff;
+    if (saved.srcOff) state.srcOff = saved.srcOff; if (saved.typeOff) state.typeOff = saved.typeOff; if (saved.book) state.book = saved.book;
   } catch (e) {}
-  function savePrefs() { try { localStorage.setItem('multi-prefs', JSON.stringify({legs: state.legs, risk: state.risk, stake: state.stake, detail: state.detail, view: state.view, srcOff: state.srcOff, typeOff: state.typeOff})); } catch (e) {} }
+  function savePrefs() { try { localStorage.setItem('multi-prefs', JSON.stringify({legs: state.legs, risk: state.risk, stake: state.stake, detail: state.detail, view: state.view, srcOff: state.srcOff, typeOff: state.typeOff, book: state.book})); } catch (e) {} }
 
   var allTeams = [];
   DATA.games.forEach(function (g) { g.teams.forEach(function (t) { if (allTeams.indexOf(t) < 0) allTeams.push(t); }); });
@@ -453,7 +456,7 @@ footer p { margin: 0 0 8px; }
   }
   // Fit "our own read" so that with every source on, the blend reproduces the run's published probability.
   DATA.games.forEach(function (g) { g.legs.forEach(function (l) {
-    l.base = { p: l.p, cons: l.cons, conf: l.conf, factors: l.factors ? JSON.parse(JSON.stringify(l.factors)) : null };
+    l.base = { p: l.p, cons: l.cons, conf: l.conf, odds: l.odds, text: l.text, line: l.line, factors: l.factors ? JSON.parse(JSON.stringify(l.factors)) : null };
     var mk = pairImplied(l), mod = modelAvg(l, false), ts = tipShare(l, false), target = l.p - (ts.share === null ? 0 : (ts.share - 0.5) * NUDGE);
     var wm = W.market, wd = mod === null ? 0 : W.model, wo = W.own, tot = wm + wd + wo;
     l.own = Math.max(0.2, Math.min(0.8, (target * tot - mk * wm - (mod || 0) * wd) / wo));
@@ -481,6 +484,48 @@ footer p { margin: 0 0 8px; }
     }); });
     var on = SOURCES.filter(function (x) { return srcOn(x.name); }).length, offT = TYPE_ORDER.filter(function (t) { return !typeOn(t); }).map(function (t) { return TYPE_NAMES[t]; });
     var b = $('basis'); if (b) { b.hidden = !anyOff; b.textContent = anyOff ? 'Rebuilt from ' + on + ' of ' + SOURCES.length + ' sources' + (offT.length ? ' (' + offT.join(', ') + ' off)' : '') + ': probabilities, consensus and heat reflect only what is on, each leg moved by at most 8 points.' : ''; }
+  }
+  // ---------- Bookie: each leg shows the chosen bookie's own line and price when the run recorded one ----------
+  var BOOKS = ['Sportsbet', 'TAB', 'Unibet'];
+  var BOOK_URL = { Sportsbet: 'https://www.sportsbet.com.au/betting/basketball-us/nba', TAB: 'https://www.tab.com.au/sports/betting/Basketball/competitions/NBA', Unibet: 'https://www.unibet.com.au/betting/sports/filter/basketball/nba' };
+  function applyBook() {
+    var missing = 0, total = 0, shifted = 0;
+    DATA.games.forEach(function (g) { g.legs.forEach(function (l) {
+      l.odds = l.base.odds; l.text = l.base.text; l.line = l.base.line; l.bookTag = '';
+      if (state.book === 'Sportsbet') return;
+      total++;
+      var q = l.lines && l.lines[state.book];
+      if (!q || !(q.odds > 1)) { missing++; l.bookTag = 'Sportsbet price'; return; }
+      l.odds = +q.odds;
+      if (typeof q.line === 'number' && typeof l.base.line === 'number' && q.line !== l.base.line) {
+        if (l.group === 'prop' && l.recent20 && l.recent20.length) {
+          var oldL = l.line; var h0 = hitRate(l, l.recent20); l.line = q.line; var h1 = hitRate(l, l.recent20); l.line = oldL;
+          if (h0 && h1) { l.p = Math.max(0.02, Math.min(0.98, Math.round((l.p + 0.6 * (h1.r - h0.r)) * 1000) / 1000)); l.conf = l.p >= 0.62 ? 'High' : l.p >= 0.5 ? 'Medium' : 'Low'; shifted++; }
+        }
+        l.line = q.line; l.text = l.base.text.replace(/(\d+\.5)\b/, String(q.line));
+      } else if (typeof q.line === 'number' && l.group !== 'prop') { l.text = l.base.text.replace(/([+-]?\d+\.5)\b/, function (m) { return (m[0] === '+' || m[0] === '-') && q.line > 0 ? (m[0] === '-' ? '-' : '+') + q.line : String(q.line); }); }
+    }); });
+    var bh = $('book-help');
+    if (bh) bh.textContent = state.book === 'Sportsbet' ? '' : missing === total ? 'No ' + state.book + ' lines recorded for this slate yet; Sportsbet lines shown.' : missing ? missing + ' of ' + total + ' legs have no ' + state.book + ' line yet and show the Sportsbet price.' : (shifted ? 'Prop probabilities re-read against ' + state.book + ' lines.' : '');
+    var ob = $('open-book'); if (ob) { ob.href = BOOK_URL[state.book]; ob.textContent = 'Open ' + state.book; }
+  }
+  function renderBooks() {
+    var el = $('book-chips'); if (!el) return; el.innerHTML = '';
+    BOOKS.forEach(function (b) { el.appendChild(chip(b, state.book === b, function () { state.book = b; state.manual = null; savePrefs(); render(); })); });
+  }
+  function slipText(legs) {
+    var out = ['NBA multi · ' + (DATA.date || '') + ' · ' + state.book], odds = 1;
+    legs.forEach(function (l, i) { var g = DATA.games.filter(function (x) { return x.id === l.game; })[0]; odds *= l.odds; out.push((i + 1) + '. ' + (g ? g.title + ' — ' : '') + l.text + ' @ ' + l.odds.toFixed(2) + (l.bookTag ? ' (' + l.bookTag + ')' : '')); });
+    out.push('Stake $' + state.stake + ' · ' + legs.length + ' legs · combined ' + odds.toFixed(2) + ' · returns $' + Math.round(odds * state.stake).toLocaleString());
+    return out.join('\n');
+  }
+  function copySlip() {
+    var txt = slipText(currentLegs()), note = $('copy-note');
+    function done(ok) { if (note) { note.textContent = ok ? 'Copied. Paste it into the ' + state.book + ' bet slip or your notes.' : 'Copy blocked by the browser; long-press the slip to select it.'; setTimeout(function () { note.textContent = ''; }, 4000); } }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); }); return; }
+      var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); document.body.removeChild(ta); done(ok);
+    } catch (e) { done(false); }
   }
   var srcDetail = false;
   function renderSources() {
@@ -885,7 +930,8 @@ footer p { margin: 0 0 8px; }
     });
   }
   function render() {
-    applySources(); renderSources();
+    applySources(); applyBook(); renderSources(); renderBooks();
+    var cb = $('copy-slip'); if (cb && !cb.dataset.wired) { cb.dataset.wired = '1'; cb.addEventListener('click', copySlip); }
     var tc = $('team-chips'); tc.innerHTML = '';
     allTeams.forEach(function (t) { tc.appendChild(chip(t, state.teams[t], function () { state.teams[t] = !state.teams[t]; state.manual = null; render(); })); });
     var lc = $('leg-chips'); lc.innerHTML = '';
@@ -899,7 +945,7 @@ footer p { margin: 0 0 8px; }
     legs.forEach(function (l, i) {
       var tr = document.createElement('tr');
       tr.innerHTML = '<td class="n">' + (i + 1) + '</td><td>' + legLogos(l) + '<b>' + esc(l.text) + '</b><span class="lv-slot" data-leg="' + esc(l.id) + '"></span><br><small style="color:var(--muted)">' + esc(gameTag(l)) + esc(l.note) + '</small></td>' +
-        '<td class="odds">' + l.odds.toFixed(2) + '</td><td>' + heatHTML(l) + '</td><td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td>' + esc(l.cons) + '</td>';
+        '<td class="odds">' + l.odds.toFixed(2) + (l.bookTag ? '<br><small style="color:var(--muted);font-weight:400">SB</small>' : '') + '</td><td>' + heatHTML(l) + '</td><td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td>' + esc(l.cons) + '</td>';
       tb.appendChild(tr);
     });
     fixLogos(tb);
