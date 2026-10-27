@@ -364,7 +364,7 @@ footer p { margin: 0 0 8px; }
     <div><div class="k">Returns on stake</div><div class="v" id="t-return">—</div></div>
     <div><div class="k">Our chance it all lands</div><div class="v" id="t-prob">—</div></div>
   </div>
-  <div class="sliptools"><button type="button" class="chip" id="copy-slip">Copy slip</button><a class="chip" id="open-book" target="_blank" rel="noopener">Open Sportsbet</a><span class="riskhelp" id="copy-note"></span></div>
+  <div class="sliptools"><a class="chip" id="open-book" target="_blank" rel="noopener">Open Sportsbet</a><span class="riskhelp" id="copy-note"></span></div>
 </div>
 
 <div class="eyebrow" id="s-games">Games and candidate legs</div>
@@ -933,7 +933,6 @@ footer p { margin: 0 0 8px; }
   }
   function render() {
     applySources(); applyBook(); renderSources(); renderBooks();
-    var cb = $('copy-slip'); if (cb && !cb.dataset.wired) { cb.dataset.wired = '1'; cb.addEventListener('click', copySlip); }
     var tc = $('team-chips'); tc.innerHTML = '';
     allTeams.forEach(function (t) { tc.appendChild(chip(t, state.teams[t], function () { state.teams[t] = !state.teams[t]; state.manual = null; render(); })); });
     var lc = $('leg-chips'); lc.innerHTML = '';
