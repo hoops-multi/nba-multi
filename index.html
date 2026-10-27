@@ -181,6 +181,7 @@ td.edge { font-family: var(--mono); white-space: nowrap; } td.edge.pos { color: 
 .corr b { color: var(--fg); }
 /* sources row */
 .srcrow .chip { font-size: 12px; padding: 4px 10px; }
+.mk { font-size: 11px; color: var(--accent); text-decoration: none; white-space: nowrap; } .mk:hover { text-decoration: underline; }
 .sliptools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 16px 14px; } .sliptools a.chip { text-decoration: none; display: inline-block; } .sliptools .chip[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
 .srcrow .chip[aria-pressed="false"] { text-decoration: line-through; opacity: .7; } #book-chips .chip[aria-pressed="false"] { text-decoration: none; opacity: 1; }
 .more { font: inherit; font-size: 12px; color: var(--muted); background: none; border: 0; padding: 4px 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
@@ -663,6 +664,8 @@ footer p { margin: 0 0 8px; }
   }
   // Direction of a leg (over/under) and its game-level kind, used for same-game correlation checks.
   function legDir(l) { return /\bunder\b/i.test(l.text) ? 'under' : /\bover\b/i.test(l.text) ? 'over' : ''; }
+  // Per-leg link to the chosen book's page for that game (runs supply game.urls = {Sportsbet: url, TAB: url}); one tap lands on the market.
+  function marketLink(l) { var g = gameOfLeg(l), u = g && g.urls && g.urls[state.book]; return u ? ' <a class="mk" href="' + esc(u) + '" target="_blank" rel="noopener" title="Open this game at ' + esc(state.book) + '">open \u2197</a>' : ''; }
   function gameTag(l) { var g = gameOfLeg(l); if (!g || DATA.games.length < 2) return ''; return (g.away || abbrOf(g.teams[0]) || g.teams[0]) + ' at ' + (g.home || abbrOf(g.teams[1]) || g.teams[1]) + ' · '; }
   function legLogos(l) {
     var g = gameOfLeg(l), a = l.team ? (TEAMS[l.team] ? l.team : abbrOf(l.team)) : null;
@@ -945,7 +948,7 @@ footer p { margin: 0 0 8px; }
     var tb = $('slip'); tb.innerHTML = '';
     legs.forEach(function (l, i) {
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td class="n">' + (i + 1) + '</td><td>' + legLogos(l) + '<b>' + esc(l.text) + '</b><span class="lv-slot" data-leg="' + esc(l.id) + '"></span><br><small style="color:var(--muted)">' + esc(gameTag(l)) + esc(l.note) + '</small></td>' +
+      tr.innerHTML = '<td class="n">' + (i + 1) + '</td><td>' + legLogos(l) + '<b>' + esc(l.text) + '</b>' + marketLink(l) + '<span class="lv-slot" data-leg="' + esc(l.id) + '"></span><br><small style="color:var(--muted)">' + esc(gameTag(l)) + esc(l.note) + '</small></td>' +
         '<td class="odds">' + l.odds.toFixed(2) + (l.bookTag ? '<br><small style="color:var(--muted);font-weight:400">SB</small>' : '') + '</td><td>' + heatHTML(l) + '</td><td class="edge ' + (edgeOf(l) > 0.005 ? 'pos' : edgeOf(l) < -0.005 ? 'neg' : '') + '">' + edgePct(l) + '</td><td>' + esc(l.cons === 'n/a' ? 'no tips' : l.cons) + '</td>';
       tb.appendChild(tr);
     });
