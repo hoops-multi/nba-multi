@@ -587,14 +587,15 @@ footer p { margin: 0 0 8px; }
     take(r.perGame);
     var withinRule = chosen.length;
     if (chosen.length < state.legs) {
-      // not enough games for the per-game cap: relax it, then relax the probability floor
+      // not enough games for the per-game cap: relax it (ranked by heat, which the pool shows predicts wins), then relax the probability floor
+      pool.sort(function (a, b) { return heatOf(b) - heatOf(a); });
       take(99);
       if (chosen.length < state.legs) {
         DATA.games.forEach(function (g) {
           if (!gameSelected(g)) return;
           g.legs.forEach(function (l) { if (l.p < r.minP && teamSelectedForLeg(l) && !exclude[l.id] && pool.indexOf(l) < 0) pool.push(l); });
         });
-        pool.sort(function (a, b) { return score(b, riskKey) - score(a, riskKey); });
+        pool.sort(function (a, b) { return heatOf(b) - heatOf(a); });
         take(99);
       }
     }
@@ -622,8 +623,10 @@ footer p { margin: 0 0 8px; }
   function score(l, riskKey) {
     var edge = l.p - 1 / l.odds, w = l.conf === 'High' ? 1.2 : l.conf === 'Medium' ? 1 : 0.8;
     // Safe ranks by how likely the leg is (shortest price first); Balanced by value over the market; Aggressive leans to the price.
-    if (riskKey === 'safe') return l.p + edge * 0.3 * w;
-    return riskKey === 'aggressive' ? (edge * w) + (l.odds - 1) * 0.05 : (edge * w) + l.p * 0.1;
+    // Pool review 27 Oct (221 legs): legs with 2-5 pts of edge landed 43% while heat 65+ landed 66%, so edge counts half and heat counts.
+    if (riskKey === 'safe') return l.p + edge * 0.15 * w;
+    var ht = heatOf(l) / 1000;
+    return riskKey === 'aggressive' ? (edge * w) * 0.5 + (l.odds - 1) * 0.05 + ht : (edge * w) * 0.5 + l.p * 0.1 + ht;
   }
   var lastDefaults = null;
   function currentLegs() {
