@@ -396,8 +396,8 @@ footer p { margin: 0 0 8px; }
 (function () {
   var DATA = JSON.parse(document.getElementById('slate-data').textContent);
   var RISK = {
-    safe:       {label: 'Safe',       help: 'Short-priced legs we rate 60%+ each, one per game. Small payout, best chance of landing.', minP: 0.60, perGame: 1},
-    balanced:   {label: 'Balanced',   help: 'Our best-value legs at 50%+ each, up to two per game. The default.', minP: 0.50, perGame: 2},
+    safe:       {label: 'Safe',       help: 'Short-priced sides and totals we rate 60%+ each, one per game, no player props. Shows fewer legs rather than padding with weaker ones (pool review 28 Oct: padded legs landed 40%).', minP: 0.60, perGame: 1, noProp: true, noPad: true},
+    balanced:   {label: 'Balanced',   help: 'Our best-value legs at 50%+ each, up to two per game and at most one player prop (props land 47% in the pool). The default.', minP: 0.50, perGame: 2, maxProp: 1},
     aggressive: {label: 'Aggressive', help: 'Value legs we rate 35%+ each, at most one under 45%, up to three per game. Leans to the payout but every leg is a live chance.', minP: 0.35, perGame: 3, maxLong: 1, longP: 0.45}
   };
   var state = { teams: {}, legs: 4, risk: 'balanced', manual: null, stake: 10, detail: false, srcOff: {}, typeOff: {}, book: 'Sportsbet' };
@@ -569,11 +569,11 @@ footer p { margin: 0 0 8px; }
     var r = RISK[riskKey], pool = []; exclude = exclude || {};
     DATA.games.forEach(function (g) {
       if (!gameSelected(g)) return;
-      g.legs.forEach(function (l) { if (l.p >= r.minP && teamSelectedForLeg(l) && !exclude[l.id]) pool.push(l); });
+      g.legs.forEach(function (l) { if (l.p >= r.minP && teamSelectedForLeg(l) && !exclude[l.id] && !(r.noProp && l.group === 'prop')) pool.push(l); });
     });
     // value score: our probability against the market's implied probability, weighted by confidence
     pool.sort(function (a, b) { return score(b, riskKey) - score(a, riskKey); });
-    var chosen = [], perGame = {}, groups = {}, used = {}, sides = {}, longs = 0;
+    var chosen = [], perGame = {}, groups = {}, used = {}, sides = {}, longs = 0, props = 0;
     function take(cap) {
       for (var i = 0; i < pool.length && chosen.length < state.legs; i++) {
         var l = pool[i], key = l.game + ':' + l.group;
@@ -582,12 +582,16 @@ footer p { margin: 0 0 8px; }
         if (l.group !== 'prop' && groups[key]) continue; // never both sides of the same market
         if ((l.group === 'ml' || l.group === 'spread') && sides[l.game] && sides[l.game] !== l.team) continue; // never back both teams in one game
         if (r.maxLong !== undefined && l.p < r.longP && longs >= r.maxLong) continue; // Aggressive: one true longshot at most
-        chosen.push(l); if (l.p < (r.longP || 0)) longs++; if (l.group === 'ml' || l.group === 'spread') sides[l.game] = l.team; used[l.id] = true; perGame[l.game] = (perGame[l.game] || 0) + 1; groups[key] = true;
+        if (r.maxProp !== undefined && l.group === 'prop' && props >= r.maxProp) continue; // Balanced: one prop at most
+        chosen.push(l); if (l.p < (r.longP || 0)) longs++; if (l.group === 'prop') props++; if (l.group === 'ml' || l.group === 'spread') sides[l.game] = l.team; used[l.id] = true; perGame[l.game] = (perGame[l.game] || 0) + 1; groups[key] = true;
       }
     }
     take(r.perGame);
     var withinRule = chosen.length;
-    if (chosen.length < state.legs) {
+    if (r.noPad) {
+      // Safe never pads: if fewer than two legs meet the rule one per game, allow a second leg from a game, but never a sub-60% leg or a prop
+      if (chosen.length < Math.min(2, state.legs)) { pool.sort(function (a, b) { return heatOf(b) - heatOf(a); }); take(99); }
+    } else if (chosen.length < state.legs) {
       // not enough games for the per-game cap: relax it (ranked by heat, which the pool shows predicts wins), then relax the probability floor
       pool.sort(function (a, b) { return heatOf(b) - heatOf(a); });
       take(99);
@@ -964,7 +968,7 @@ footer p { margin: 0 0 8px; }
       noteEl.textContent = (wr === 0 ? 'No legs meet the ' + lbl + ' rule across ' + gm + ', so the slip shows the ' + (lbl === 'Safe' ? 'most likely' : 'best value') + ' legs available instead' : 'Only ' + wr + ' leg' + (wr === 1 ? ' meets' : 's meet') + ' the ' + lbl + ' rule across ' + gm + '; ' + (lastBuild.total - wr === 1 ? 'leg ' + lastBuild.total + ' is' : 'legs ' + (wr + 1) + ' to ' + lastBuild.total + ' are') + ' the next-best available') + '. Add more teams or lower the leg count for a slip that fits the rule.';
       noteEl.hidden = false;
     } else if (!state.manual && lastBuild && lastBuild.total < lastBuild.wanted) {
-      noteEl.textContent = 'Only ' + lastBuild.total + ' legs are available from the selected games without backing both sides of one market.';
+      noteEl.textContent = RISK[state.risk].noPad ? 'Only ' + lastBuild.total + ' leg' + (lastBuild.total === 1 ? '' : 's') + ' meet' + (lastBuild.total === 1 ? 's' : '') + ' the Safe rule (60%+, no props) on this slate. Safe does not pad with weaker legs: the padded legs landed 40% in the pool.' : 'Only ' + lastBuild.total + ' legs are available from the selected games without backing both sides of one market.';
       noteEl.hidden = false;
     } else { noteEl.hidden = true; }
     var sharedEl = $('slip-shared');
