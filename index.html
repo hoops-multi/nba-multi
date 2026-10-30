@@ -800,8 +800,8 @@ footer p { margin: 0 0 8px; }
       levels.forEach(function (k) {
         var sl = d.slips && d.slips[k]; if (!sl) return;
         var r = String(sl.result || 'Pending').toLowerCase();
-        if (r === 'won') { tally[k].won++; tally[k].net += (sl.odds - 1) * 10; }
-        else if (r === 'lost') { tally[k].lost++; tally[k].net -= 10; }
+        if (r === 'won') { tally[k].won++; tally[k].net += (sl.odds - 1) * STAKE[k]; }
+        else if (r === 'lost') { tally[k].lost++; tally[k].net -= STAKE[k]; }
         else if (r === 'pending') { tally[k].pending++; }
       });
     });
@@ -809,7 +809,7 @@ footer p { margin: 0 0 8px; }
     levels.forEach(function (k) {
       var t = tally[k], net = Math.round(t.net), sign = net > 0 ? '+' : net < 0 ? '-' : '';
       var c = document.createElement('div'); c.className = 'panel card';
-      c.innerHTML = '<div class="k">' + RISK[k].label + '</div><div class="v">' + t.won + 'W ' + t.lost + 'L</div><div class="s">' + sign + '$' + Math.abs(net) + ' net at $10 a day' + (t.pending ? ' · ' + t.pending + ' pending' : '') + '</div>';
+      c.innerHTML = '<div class="k">' + RISK[k].label + '</div><div class="v">' + t.won + 'W ' + t.lost + 'L</div><div class="s">' + sign + '$' + Math.abs(net) + ' net at $' + STAKE[k] + ' a day' + (t.pending ? ' · ' + t.pending + ' pending' : '') + '</div>';
       tl.appendChild(c);
     });
     var hc = document.createElement('div'); hc.className = 'panel card';
@@ -873,7 +873,8 @@ footer p { margin: 0 0 8px; }
       : 'No adjustments yet: a type needs about 30 graded legs before the run moves its probabilities. ')
       + '"We said" is the average probability we gave those legs; a positive gap means they landed more often than we said. "Beat close" is how often the price shortened after we picked the leg, the quickest sign that picks are ahead of the market; 50% is break-even, 55%+ over 100 legs is a real edge.';
   }
-  // Running profit at $10 a day, one line per risk level, graded days only.
+  // Running profit with $10 a day split 5:3:2 across the levels, one line per risk level, graded days only.
+  var STAKE = { safe: 5, balanced: 3, aggressive: 2 };
   function renderCurve(hist, levels) {
     var el = $('curve'); if (!el) return;
     var days = hist.filter(function (d) { return levels.some(function (k) { var sl = d.slips && d.slips[k]; return sl && /^(won|lost|void)$/i.test(sl.result || ''); }); });
@@ -883,7 +884,7 @@ footer p { margin: 0 0 8px; }
     levels.forEach(function (k) {
       var run = 0; series[k] = days.map(function (d) {
         var sl = d.slips && d.slips[k], r = sl ? String(sl.result || '').toLowerCase() : '';
-        if (r === 'won') run += (Number(sl.odds) - 1) * 10; else if (r === 'lost') run -= 10;
+        if (r === 'won') run += (Number(sl.odds) - 1) * STAKE[k]; else if (r === 'lost') run -= STAKE[k];
         lo = Math.min(lo, run); hi = Math.max(hi, run); return run;
       });
     });
@@ -904,8 +905,9 @@ footer p { margin: 0 0 8px; }
     });
     svg += '</svg>';
     var lg = levels.map(function (k) { var v = Math.round(series[k][n - 1]); return '<span><i style="background:' + COL[k] + '"></i>' + RISK[k].label + ' <b>' + (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(v) + '</b></span>'; }).join('');
-    el.innerHTML = '<div class="hd"><span class="k">Running profit, $10 on each slip every day</span><span class="lg">' + lg + '</span></div>' + svg +
-      '<p class="s">' + (n === 1 ? 'One graded day so far; the lines grow as days are graded, 30 days kept.' : n + ' graded days, 30 kept.') + '</p>';
+    var total = Math.round(levels.reduce(function (a, k) { return a + series[k][n - 1]; }, 0));
+    el.innerHTML = '<div class="hd"><span class="k">Running profit, $10 a day split 5:3:2 (Safe $5, Balanced $3, Aggressive $2)</span><span class="lg">' + lg + '</span></div>' + svg +
+      '<p class="s">' + (n === 1 ? 'One graded day so far; the lines grow as days are graded, 30 days kept.' : n + ' graded days, 30 kept.') + ' All three together: <b>' + (total > 0 ? '+' : total < 0 ? '-' : '') + '$' + Math.abs(total) + '</b>.</p>';
     el.hidden = false;
   }
 
